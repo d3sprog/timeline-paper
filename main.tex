@@ -2,6 +2,8 @@
 \usepackage{overpic}
 \usepackage{xspace}
 \usepackage{enumitem}
+\usepackage{listings}
+\usepackage[dvipsnames]{xcolor}
 
 \settopmatter{printacmref=false}
 \newcommand{\Timeline}{\textsc{Timeline}\xspace}
@@ -21,6 +23,29 @@
 
 \DeclareRobustCommand*{\circled}[1]{\raisebox{-0.4ex}{\includegraphics[height=1.4\fontcharht\font`\B]{fig/circles/#1.pdf}}\hspace{0cm}}
 \DeclareRobustCommand*{\circledsm}[1]{\includegraphics[height=1.1\fontcharht\font`\B]{fig/circles/#1.pdf}}
+
+\lstdefinelanguage{timeline}{
+    morekeywords={IF, AND, STEP, COS, RADIANS, MAX, SIN, POWER},
+    morekeywords=[2]{B5,C5,D5,E5,F5},
+    sensitive=true,
+    morestring=[b]"
+}
+\lstdefinestyle{timelineStyle}{
+    language=timeline,
+    basicstyle=\footnotesize\ttfamily,
+    numbers=none,
+    frame=none,
+    keywordstyle=\color{RoyalPurple},
+    keywordstyle=[2]\color{Bittersweet},
+    stringstyle=\color{red},
+    literate=
+      {F19}{{{\color{Bittersweet}{F19}}}}1
+      {G19}{{{\color{Bittersweet}{G19}}}}1
+      {0}{{{\color{OliveGreen}{0}}}}1
+      {-1}{{{\color{OliveGreen}{-1}}}}1
+      {1}{{{\color{OliveGreen}{1}}}}1
+}
+\newcommand{\tml}[1]{\lstinline[style=timelineStyle,basicstyle=\small\ttfamily]{#1}}
 
 \begin{document}
 \title{Timeline: Adding the time dimension to spreadsheets}
@@ -61,19 +86,18 @@ ideas can often be productively used outside of their original domain.
 %%
 \begin{CCSXML}
 <ccs2012>
- <concept>
-  <concept_id>00000000.0000000.0000000</concept_id>
-  <concept_desc>Do Not Use This Code, Generate the Correct Terms for Your Paper</concept_desc>
-  <concept_significance>500</concept_significance>
- </concept>
-</ccs2012>
+   <concept>
+       <concept_id>10011007.10011006.10011008.10011009.10011022</concept_id>
+       <concept_desc>Software and its engineering~Very high level languages</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+ </ccs2012>
 \end{CCSXML}
-%\ccsdesc[500]{Do Not Use This Code~Generate the Correct Terms for Your Paper}
-
+\ccsdesc[500]{Software and its engineering~Very high level languages}
 %%
 %% Keywords. The author(s) should pick words that accurately describe
 %% the work being presented. Separate the keywords with commas.
-%\keywords{Do, Not, Use, This, Code, Put, the, Correct, Terms, for, Your, Paper}
+%\keywords{Spreadsheet systems, Dataflow languages, Functional programming}
 
 % \received{20 February 2007}
 % \received[revised]{12 March 2009}
@@ -129,6 +153,7 @@ implicit discrete time to the spreadsheet programming model and extends the form
 allow references to previous values and user interface events, but otherwise preserves the
 standard spreadsheet model.
 
+\subsubsection*{Adapting programming langauge research.}
 Although \Timeline is interesting as an exploration of the expressive power of spreadsheets with
 discrete time, this paper considers it primarily from the technical perspective of programming
 language design and implementation. We show that a large number of concepts and techniques
@@ -136,20 +161,18 @@ developed in the context of programming language research are directly applicabl
 spreadsheets.
 
 The key addition to \Timeline is a built-in notion of discrete time. Formulas in cells can
-refer to other cells (e.g.~\verb|G19|), but also values computed in earlier steps (e.g.~\verb|F19[-1]).
-To support this, the runtime and language of \Timeline draws inspiration from research on
-\emph{synchronous dataflow languages} \cite{benveniste-2003-sync,halbwachs-1991-lustre}. To ensure that
-simulations and interactive applications (e.g.,~\autoref{fig:teaser}) execute using bounded
-memory when possible, we use a program analysis based on \emph{coeffects}
-\cite{petricek-2013-coeffects,petricek-2014-coeffects}
-
-
-to
-
-to
-
-To
-
+refer to other cells (e.g.~\tml{G19}), but also values computed in earlier steps (e.g.~\tml{F19[-1]}).
+The language design and runtime implementation of \Timeline draws inspiration from research on
+\emph{synchronous dataflow languages} \cite{benveniste-2003-sync,halbwachs-1991-lustre}. To ensure
+that simulations and interactive applications execute using bounded memory whenever possible,
+we augment the runtime with a program analysis based on \emph{coeffects}
+\cite{petricek-2013-coeffects,petricek-2014-coeffects}. The support for discrete times also makes
+it possible to use the spreadsheet paradigm for building interactive applications. Here, we draw
+on the \emph{functional reactive programming} paradigm~\cite{elliott-1997-fran,wan-2000-frp}.
+Although not strictly related to time, \Timeline also adopts a \emph{composable data
+visualization} model \cite{petricek-2021-compost,marasoiu-2019-cuscus,wilkinson-2012-gg}.
+Finally, the \Timeline also uses a notion of \emph{typed holes} \cite{omar-2019-typedholes}
+to determine when the user may want to insert a cell reference during formula editing.
 
 \subsubsection*{Contributions} This paper presents the design and implementation of a
 spreadsheet system with discrete time and captures its essence through a core calculus.
@@ -162,7 +185,8 @@ spreadsheet system with discrete time and captures its essence through a core ca
 
 \item We discuss how how the design and implementation of \Timeline adapts a range of advanced
   programming language concepts and techniques for the context of spreadsheet
-  systems~(\autoref{sec:features}).
+  systems~(\autoref{sec:features}), including dataflow languages, coeffects,
+  functional reactive programming, visualization grammars and typed holes.
 
 \item We present a core calculus of the \Timeline execution model, which captures the way previous
   values are stored during the spreadsheet evaluation (\autoref{sec:calculus}). We formalize a
@@ -185,20 +209,31 @@ spreadsheet system with discrete time and captures its essence through a core ca
 %\put(35,36.3){\circledsm{3}}
 %\put(60,40){\circledsm{4}}
 \end{overpic}
-\caption{A flappy bird game clone in Timeline. \circled{1} The selected formula computes the Y
-velocity in the current step. \circled{2} The system uses discrete time. \circled{3} Visualizations
-are built using a composable grammar of graphics and \circled{4} can be displayed inline or in a
-separate panel. The formula for the velocity \circled{A} specifies an initial value,
-\circled{B} reacts to user-interface events, and \circled{C} accesses a previous value to compute
-the current one.}
+\caption{Cannon ball.}
 \label{fig:cannon}
 \end{figure}
 
-\section{Walkthrough}
+\section{Overview}
 \label{sec:walkthrough}
+
+We overview \Timeline using a simple cannonball firing simulation (\autoref{fig:cannon}).
+In each step, the simulation computes the cannonball position using the position in the
+previous step and the current time step. We ignore air resistance, but this could be easily
+added to a stepwise simulation model. The simulation stops when the cannonballs hit the ground.
+
+\subsubsection*{Cannonball movement}
+bar
+
+
+\begin{lstlisting}[style=timelineStyle]
+E5 = 0 => IF(AND(F5 == 0, STEP() != 1), E5[-1], E5[-1] + B5 * COS(RADIANS(C5)))
+F5 = 0 => MAX(0, F5[-1] + B5 * SIN(RADIANS(C5)) - 1/2 * D5 * POWER(STEP(), 2))
+\end{lstlisting}
 
 \section{Language features}
 \label{sec:features}
+
+\newpage
 
 \subsection{Synchronous languages}
 \label{sec:features-dataflow}
