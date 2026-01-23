@@ -3,7 +3,24 @@
 \usepackage{xspace}
 \usepackage{enumitem}
 \usepackage{listings}
+\usepackage{mathpartir}
 \usepackage[dvipsnames]{xcolor}
+
+% https://tex.stackexchange.com/questions/471464/inverted-exclamation-mark-in-mathmode
+\DeclareMathSymbol{\mathinvertedexclamationmark}{\mathclose}{operators}{'074}
+\DeclareMathSymbol{\mathexclamationmark}{\mathclose}{operators}{'041}
+
+\makeatletter
+\newcommand{\raisedmathinvertedexclamationmark}{%
+  \mathclose{\mathpalette\raised@mathinvertedexclamationmark\relax}%
+}
+\newcommand{\raised@mathinvertedexclamationmark}[2]{%
+  \raisebox{\depth}{$\m@th#1\mathinvertedexclamationmark$}%
+}
+\begingroup\lccode`~=`! \lowercase{\endgroup
+  \def~}{\@ifnextchar`{\raisedmathinvertedexclamationmark\@gobble}{\mathexclamationmark}}
+\mathcode`!="8000
+\makeatother
 
 \settopmatter{printacmref=false}
 \newcommand{\Timeline}{\textsc{Timeline}\xspace}
@@ -25,7 +42,7 @@
 \DeclareRobustCommand*{\circledsm}[1]{\includegraphics[height=1.1\fontcharht\font`\B]{fig/circles/#1.pdf}}
 
 \lstdefinelanguage{timeline}{
-    morekeywords={IF, AND, STEP, COS, RADIANS, MAX, SIN, POWER},
+    morekeywords={IF, AND, STEP, COS, RADIANS, MAX, SIN, POWER, SUM},
     morekeywords=[2]{B5,C5,D5,E5,F5},
     sensitive=true,
     morestring=[b]"
@@ -46,6 +63,7 @@
       {1}{{{\color{OliveGreen}{1}}}}1
 }
 \newcommand{\tml}[1]{\lstinline[style=timelineStyle,basicstyle=\small\ttfamily]{#1}}
+\newcommand{\todo}[1]{\textcolor{red}{\sffamily\small TODO: #1}}
 
 \begin{document}
 \title{Timeline: Adding the time dimension to spreadsheets}
@@ -191,7 +209,7 @@ spreadsheet system with discrete time and captures its essence through a core ca
 \item We present a core calculus of the \Timeline execution model, which captures the way previous
   values are stored during the spreadsheet evaluation (\autoref{sec:calculus}). We formalize a
   space optimization based on coeffects implemented in \Timeline and prove its soundness
-  (\autoref{sec:calculus-coeffects}).
+  (\autoref{sec:calculus-properties}).
 
 
 \end{itemize}
@@ -250,11 +268,287 @@ F5 = 0 => MAX(0, F5[-1] + B5 * SIN(RADIANS(C5)) - 1/2 * D5 * POWER(STEP(), 2))
 \subsection{Typed holes}
 \label{sec:features-holes}
 
+\newpage
+
+\newcommand{\ident}[1]{\textsf{#1}}
+\newcommand{\kvd}[1]{\textsf{\bfseries #1}}
+\newcommand{\lsep}{\;\;|\;\;}
+
+\begin{figure}
+\[
+\begin{array}{llcl}
+\textnormal{\textbf{Column name}}  & N & =   & \ident{A} \lsep \ident{B} \lsep \ident{C} \lsep \ldots\\
+\textnormal{\textbf{Row index}}    & m & \in & \mathbb{N}_1\\
+\textnormal{\textbf{Address}}      & a & = & Nm\\
+\textnormal{\textbf{Range}}        & R & = & a_1\!:\!a_2
+\end{array}
+\qquad
+\begin{array}{llcl}
+\textnormal{\textbf{Value}}        & V & = & c \lsep \{ V_{i,j} \} \\
+\textnormal{\textbf{Formula}}      & F & = & V \lsep R \lsep f(F_1, \ldots, F_n)\\
+\textnormal{\textbf{Sheet}}        & \sigma & \in & \mathit{Address} \rightarrow \mathit{Formula} \\
+\textnormal{\textbf{Grid}}         & \gamma & \in & \mathit{Address} \rightarrow \mathit{Value}
+\end{array}
+\]
+\caption{Syntax of the core \Timeline calculus.}
+\label{fig:syntax}
+\end{figure}
+
+
+\begin{figure}
+\raggedright
+$\boxed{\textnormal{Formula evaluation:}~~\sigma \vdash F \Downarrow V }$
+
+\[
+\begin{array}{l}
+\ident{size}(N_1 m_1\!:\!N_2 m_2) = (N_2 - N_1 + 1, m_2 - m_1 + 1) \\[0.2em]
+N_1 m_1 + (i, j) = (N_1 + i - 1)(m_1 + j - 1)
+\end{array}
+\]
+\\[0.5em]
+\[
+\inferrule{~}{\sigma \vdash V \Downarrow V}
+\qquad
+\inferrule
+  {\sigma \vdash F_i \Downarrow V_i \quad \llbracket f \rrbracket(V_1, \ldots, V_n)=V}
+  {\sigma \vdash f(F_1, \ldots, F_n) \Downarrow V}
+\qquad
+\inferrule
+  {\sigma \vdash a\,!\,V}
+  {\sigma \vdash a\!:\!a \Downarrow V}
+\]
+\\[0.5em]
+\[
+\inferrule
+  {a_1\neq a_2 \quad \ident{size}(a_1\!:\! a_2)=(n, m) \quad
+    \forall i\in 1..n, j\in 1..m ~.~ \sigma \vdash (a_1 + (i,j)) \,!\, V_{i,j} }
+  {\sigma \vdash a_1\!:\!a_2 \Downarrow \{ V_{i,j} \} }
+\]
+\\[0.5em]
+$\boxed{\textnormal{Address dereferencing:}~~\sigma \vdash a\,!\, V }$
+
+\[
+\inferrule
+  {\sigma(a)=F \quad \sigma \vdash F \Downarrow V}{\sigma \vdash a \,!\, V}
+\]
+\\[0.5em]
+$\boxed{\textnormal{Sheet evaluation:}~~\sigma \Downarrow \gamma}$
+
+\[
+\inferrule
+  {\forall a \in \ident{dom}(\sigma)~.~\gamma(a) = V \wedge \sigma \vdash \sigma(a) \Downarrow V}
+  {\sigma \Downarrow \gamma}
+\]
+
+
+\caption{Reduction rules that define formula evaluation of the core \Timeline calculus.}
+\label{fig:semantics}
+\end{figure}
+
 \section{Calculus}
 \label{sec:calculus}
+In this section, we present a core calculus of \Timeline. We take the \emph{core calculus for
+spreadsheets}~\cite{williams-2020-spilled} as our starting point (\autoref{sec:calculus-syntax},
+\autoref{sec:calculus-semantics}), extend it with the notion of time (\autoref{sec:calculus-time},
+\autoref{sec:calculus-run}) and then discuss our coeffect-based optimization
+(\autoref{sec:calculus-optimization}) and show its soundness (\autoref{sec:calculus-properties}).
 
-\subsection{Coeffect soundness}
-\label{sec:calculus-coeffects}
+\subsection{Syntax}
+\label{sec:calculus-syntax}
+
+\autoref{fig:syntax} defines the syntax of the calculus. Addresses $Nm$ consist of a column
+name (such as \ident{A}, \ident{AB}) and a row index (starting from 1) and ranges are pairs of
+addresses. Values can be constants $c$ or a two-dimensional arrays $\{ V_{i,j} \}$ with
+indices $i\in 1 .. n, j\in 1 .. m$.
+
+We treat error values as constants and omit explicit empty values \cite{williams-2020-spilled} and
+explicit error propagation \cite{bock-2020-sheetdef} for simplicity (functions called with error
+value as an argument return an error). Although we do not support spilling \cite{williams-2020-spilled},
+we include arrays of values and later extend those to support ranges over time.
+Note also that a singleton array $\{ V \}$ is distinct from a primitive value $V$.
+Formulas can be primitive values $V$, range references $R$ or built-in function calls.
+For simplicity, cells can only be referenced through ranges so a reference \tml{B5} are modelled
+as a singleton range reference \tml{B5:B5}.
+
+Following the terminology of Williams et al.~\cite{williams-2020-spilled}, we use the term \emph{sheet}
+to refer to the source code and \emph{grid} for the result of evaluating a sheet. A sheet
+$\sigma$ is a partial function from addresses to formulas, while a grid $\gamma$ is a partial
+function from addresses to values.
+
+\subsection{Semantics}
+\label{sec:calculus-semantics}
+
+The evaluation rules are defined in \autoref{fig:semantics}. We follow the style of
+Williams et al.~\cite{williams-2020-spilled} and define evaluation with respect to a an
+unevaluated sheet $\sigma$. This means that dereferencing an address, defined as an auxiliary
+relation $\sigma \vdash a \,!\,V$ obtains the formula of the target cell and evaluates it
+recursively. Consequently, evaluation of cyclic references is not defined. An alternative
+approach~\cite{bock-2020-sheetdef} defines evaluation with respect to (other) evaluated values
+as $\gamma \vdash F \Downarrow V$ and imposes consistency requirements on the recalculation
+process. This rules out cyclic references for which there is no consistent value assignment,
+such as $\ident{A1}=\ident{A1}+1$, but permits self-references such as $\ident{A1} = \ident{A1}$.
+
+Formula evaluation $\sigma \vdash F \Downarrow V$ is then a relation that evaluates a formula
+$F$ to a value $V$ given the sheet definition $\sigma$. A value $V$ evaluates to itself.
+A function call $f(F_1,\ldots,F_n)$ evaluates its arguments and then obtains the result by
+applying $\llbracket f \rrbracket$, which defines the semantics of the built-in function,
+to the arguments. Evaluating a singleton range $a:a$ obtains a single value at the given address
+using dereferencing. Evaluating a range $a_1:a_n$ iterates over all addresses in the range.
+The helper \ident{size} returns the size of the range and $a+(i,j)$ returns an address moved
+by 1-based offsets $i$ and $j$.
+
+Sheet evaluation $\sigma \Downarrow \gamma$ evaluates the value at each address
+$a \in \ident{dom}(\sigma)$ defined in the sheet $\sigma$. We do not specify evaluation order,
+but the evaluation is still deterministic (\autoref{sec:calculus-properties}). Our \Timeline
+implementation builds a dependency graph between cells and evaluates them in a topological
+order. As discussed earlier, sheet evaluation is not defined for sheets containing a cyclic reference.
+
+\begin{figure}
+\[
+\begin{array}{lrcl}
+\textnormal{\textbf{Time}}         & t & \in & \mathbb{N}_1\\
+\textnormal{\textbf{Interval}}     & T & = & -t_1\!:\!-t_2\\
+\textnormal{\textbf{Range}}        & R & = & a_1\!:\!a_2 \lsep a_1\!:\!a_2[\tau]\\
+\textnormal{\textbf{Value}}        & V & = & \ldots \lsep \{ V_{t,i,j} \}\\
+\end{array}
+\quad
+\begin{array}{lrcl}
+\textnormal{\textbf{Expression}}   & E & = & V \lsep R \lsep f(E_1, \ldots, E_n) \\
+\textnormal{\textbf{Formula}}      & F & = & E \lsep E \Rightarrow F\\
+\textnormal{\textbf{Timeline}}     & \iota & \in & \{ 1 \ldots t \} \rightarrow \mathit{Value} \\
+\textnormal{\textbf{History}}      & \omega & \in & \mathit{Address} \rightarrow \mathit{Timeline}\\
+\end{array}
+\]
+\caption{Syntax of the \Timeline calculus with time.}
+\label{fig:syntax-time}
+\end{figure}
+
+\subsection{Adding the time dimension}
+\label{sec:calculus-time}
+
+To model \Timeline, we extend the core calculus with a notion of discrete time.
+The extended syntax is shown in \autoref{fig:syntax-time}. Time $t$ is modelled using positive
+integers and, following the \Timeline implementation, we refer to history using negative
+values $-t$. An interval is defined by a pair of time values. A range $R$ can now refer to
+a three-dimensional range over a sheet area and a time interval. A reference to a single
+past value such as \tml{F19[-1]} is modelled as a singleton range \tml{F19:F19[-1:-1]}.
+Evaluating a reference to a three-dimensional range produces a three-dimensional array
+of values, represented as a new kind of value written as $\{ V_{t,i,j} \}$.
+
+Note that intervals can only range over historical values and so we cannot write, for example,
+\tml{SUM(F19[0:-1])} to add the current and the previous value of \tml{F19}. This simplifies the model
+as previous and current values are stored differently. Corresponding computations can be
+expressed explicitly using, for example, \tml{F19+F19[-1]}.
+
+To model the \emph{followed by} operator $\Rightarrow$, we separate formulas $F$ and
+expressions $E$. A formula can be an expression, or a formula prefixed with an initial value
+(i.e., a formula has zero or more prefixed values). In addition to the previously defined
+grid $\gamma$, we maintain the history of previously evaluated values. A history $\omega$
+is a partial function mapping addresses to timelines. A timeline stores a continuous range
+of $t$ previous values of a cell, indexed by a time interval from $1$ to $t$.
+
+\begin{figure}
+\raggedright
+$\boxed{\textnormal{Formula evaluation:}~~\sigma, \omega \vdash F \Downarrow V}$
+
+\[
+N_1 m_1 [-t_1] + (t, i, j) = (N_1 + i - 1) (m_1 + j - 1) [-(t_1 + t - 1)]
+\]
+\\[-0.5em]
+\[
+\inferrule{\sigma, \omega \vdash F \Downarrow V}{\sigma, \omega \vdash E \Rightarrow F \Downarrow V}
+\qquad
+\inferrule
+  {\omega \vdash a[-t]\,!`\,V}
+  {\sigma, \omega \vdash a\!:\!a[-t\!:\!-t] \Downarrow V}
+\]
+\\[0.5em]
+\[
+\inferrule
+  {a_1\neq a_2 \vee t_1\neq t_2 \qquad \ident{size}(a_1\!:\!a_2)=(n, m)\qquad l = t_2 - t_1 + 1\\
+    \forall i\in 1..n, j\in 1..m, t\in 1..l ~.~ \omega \vdash a_1[-t_1] + (t,i,j) \,!`\, V_{t,i,j} }
+  {\sigma, \omega \vdash a_1\!:\!a_2[-t_1\!:\!-t_2] \Downarrow \{ V_{t,i,j} \} }
+\]
+\\[0.75em]
+$\boxed{\textnormal{History access:}~~\omega \vdash a[-t]\,!`\, V }$
+\hfill
+$\boxed{\textnormal{Sheet evaluation:}~~\sigma, \omega \Downarrow \gamma}$
+\\[0.5em]
+\[
+\inferrule
+  {\omega(a)(t)=F}{\omega \vdash a[-t] \,!`\, V}
+\hspace{11em}
+\inferrule
+  {\forall a \in \ident{dom}(\sigma)~.~\gamma(a) = V \wedge \sigma, \omega \vdash \sigma(a) \Downarrow V}
+  {\sigma, \omega \Downarrow \gamma}
+\]
+\caption{Reduction rules that define formula evaluation of the \Timeline calculus with time.}
+\label{fig:semantics-time}
+\end{figure}
+
+\autoref{fig:semantics-time} defines the extended semantics. Formula evaluation
+is now defined with respect to the sheet $\sigma$ but also previously evaluated values
+represented using a history $\omega$. The additional context can be easily added to the
+rules in \autoref{fig:semantics-time}, but we define new rules for three-dimensional
+ranges and formulas prefixed with initial values. The value of $E\Rightarrow F$ is the
+value of $F$. The initial value will be used later, when initializing the history $\omega$.
+
+To access past values, we define an auxiliary relation $\omega \vdash a[-t]\,!`\,V$ akin to
+address dereferencing. However, the relation is defined with respect to the previously
+evaluated values and it accesses the past value from the timeline, rather than evaluating it.
+
+The evaluation again distinguishes the case when a range refers to a single value. If so,
+the value is obtained from the history and returned. For larger ranges, we iterate over
+all the values and build a three-dimensional array $\{ V_{t,i,j} \}$. We extend our earlier
+auxiliary definition of $+$ to also support computing an offset for an address at a specified time.
+The sheet evaluation remains unchanged, except that it now provides the history $\omega$
+to the formula evaluation. It evaluates the current values of the formulas, with respect
+to a given history.
+
+~
+
+\todo{Also model the case where interval is defined by expressions. This
+leads to unbounded buffers.}
+
+\todo{Also model some special functions, at least \tml{STEP()}.}
+
+\subsection{Running the computation}
+\label{sec:calculus-run}
+
+\newpage
+
+Evaluation in time
+
+\[
+\begin{array}{l}
+\omega_0(a) = \{ 1 \mapsto V_1, \ldots, k \mapsto V_k \}
+\qquad
+\textnormal{if}~\sigma(a) = E_k \Rightarrow \ldots \Rightarrow E_1 \Rightarrow E
+\\
+\textnormal{where}~\sigma, \emptyset \vdash E_i \Downarrow V_i
+\end{array}
+\]
+
+\[
+\begin{array}{l}
+\omega_{n+1}(a)(1) = \gamma_n(a) \\
+\omega_{n+1}(a)(1+t) = \omega_n(t)
+\end{array}
+\qquad
+\textnormal{where}~\sigma, \omega_n \Downarrow \gamma_n
+\]
+
+\subsection{Coeffect optimization}
+\label{sec:calculus-optimization}
+
+$\mathcal{B} : \textit{Address} \rightarrow \mathbb{N}_0$
+
+\newpage
+
+\subsection{Properties and coeffect soundness}
+\label{sec:calculus-properties}
+
+sheet evaluation is deterministic?
 
 \section{Case studies}
 \label{sec:case-studies}
@@ -267,17 +561,24 @@ F5 = 0 => MAX(0, F5[-1] + B5 * SIN(RADIANS(C5)) - 1/2 * D5 * POWER(STEP(), 2))
 \section{Related work}
 % https://jeannin.github.io/papers/chen2022synchronous.pdf
 
+static analysis
+\cite{cheng-2015-static}
+type inference
+\cite{abraham-2006-inference}
+
 sheet defined functions
 \cite{jones-2003-functions}
 \cite{sestoft-2013-sheetdef}
 and their semantics
 \cite{bock-2020-sheetdef}
+elastic
+\cite{mccutchen-2020-sdfs}
 
 gridlets
 \cite{joharizadeh-2020-gridlets}
 and their semantics
 \cite{williams-2020-spilled}
-\cite{aspbock-2022-cost}
+\cite{bock-2022-cost}
 \begin{acks}
 Omitted
 \end{acks}
