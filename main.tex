@@ -219,7 +219,7 @@ spreadsheet system with discrete time and captures its essence through a core ca
 \item We present a core calculus of the \Timeline execution model (\autoref{sec:calculus}), which
   captures the way previous values are stored during the spreadsheet evaluation. We define a
   mechanism for checking references to earlier time steps (\autoref{sec:calculus-timetypes}), formalize a
-  space optimization based on coeffects implemented in \Timeline (\autoref{sec:calculus-optimization})
+  space optimization based on coeffects (\autoref{sec:calculus-optimization})
   and prove their soundness (\autoref{sec:calculus-properties}).
 \end{itemize}
 
@@ -280,6 +280,7 @@ previous values of other attributes. \circled{3} A separate table plots past pos
 \circled{4} A table with configuration and composed final chart. \circled{5}~The composed chart
 is then embedded in the sheet.}
 \label{fig:cannon}
+\vspace{-0.25em}
 \end{figure}
 
 \subsubsection*{Implementing Cannonball Simulation}
@@ -320,12 +321,17 @@ Air drag is obtained by multiplying the previous X and Y velocities by the air r
 \end{lstlisting}
 
 Note that the calculation of air drag does not require specifying an initial value, because there are
-no references to previous values of \tml{H3}, \tml{I3}. The only references to the cell are in the
+no references to previous values of \tml{H3} and \tml{I3}. The only references to the cells are in the
 velocity computation, but those refer to the current value. The air drag computation accesses
 velocity at the previous time step, which always exists because velocity defines an initial value
-using \tml{=>}. As in standard spreadsheet systems, references between cells need to be acyclic,
-but references to previous time steps do not introduce a cycle (we discuss the conditions more
-formally in \autoref{sec:calculus-timetypes}).
+using \tml{=>}. As in standard spreadsheet systems, references between current values of cells
+need to be acyclic. References to previous time steps do not introduce a cycle.
+
+An interesting problem is how many past values need to be kept by the system. In the computation
+described so far, we access one previous value of cells \tml{B3}, \tml{C3} and \tml{F3}, \tml{G3}
+using the \tml{[-1]} notation. It is thus sufficient to keep one past value for these four cells.
+For the chart (\autoref{fig:cannon}, \circled{5}) we need to store all previous values of the
+cells that define the line. We discuss this aspect in detail in \autoref{sec:features-coeffects}.
 
 \subsubsection*{Composable Data Visualization}
 Data visualizations in standard spreadsheet systems exist separately of the core spreadsheet
@@ -355,7 +361,7 @@ chart shape consisting of the individual shapes; \tml{AXES} attaches axes with l
 given chart shape. The addition requires adding points and chart shapes as two additional
 primitive values to the core spreadsheet model. In systems that support richer data structures
 \cite{mccutchen-2016-oosheets,yoder-1994-real,clack-1997-object,burnett-2001-forms3}, a point
-could be a simple record.
+could be a user-defined object or a record.
 
 To construct the chart, the cell \tml{C10} constructs a point consisting of the current X and Y
 positions of the cannonball. We then want to construct a line from all previous locations of the
@@ -380,8 +386,8 @@ The motivating example shows how the additions made in \Timeline preserve the si
 and directness of the core spreadsheet model. We add only a limited number of extensions
 to the formula language (the \tml{=>} operator and references across time).
 Moreover, when creating a spreadsheet in \Timeline, users still start with concrete values and then
-extend their formulas using drag down to apply across a range of inputs, preserving the
-\emph{from concrete cases} mode of \emph{abstraction construction} \cite{jakubovic-2023-techdims}.
+extend their formulas using the drag down operation to apply a formula across a range of inputs,
+preserving the \emph{from concrete cases} mode of \emph{abstraction construction} \cite{jakubovic-2023-techdims}.
 
 \section{Language features}
 \label{sec:features}
@@ -469,9 +475,8 @@ $\boxed{\textnormal{Address dereferencing:}~~\sigma \vdash a\,!\, V }$
 \inferrule
   {\sigma(a)=F \quad \sigma \vdash F \Downarrow V}{\sigma \vdash a \,!\, V}
 \]
-\\[0.5em]
 $\boxed{\textnormal{Sheet evaluation:}~~\sigma \Downarrow \gamma}$
-
+\\[-0.5em]
 \[
 \inferrule
   {\forall a \in \ident{dom}(\sigma)~.~\gamma(a) = V \wedge \sigma \vdash \sigma(a) \Downarrow V}
@@ -487,8 +492,8 @@ $\boxed{\textnormal{Sheet evaluation:}~~\sigma \Downarrow \gamma}$
 \label{sec:calculus}
 In this section, we present a core calculus of \Timeline. We take the \emph{core calculus for
 spreadsheets}~\cite{williams-2020-spilled} as our starting point (\autoref{sec:calculus-syntax},
-\autoref{sec:calculus-semantics}) and extend it with the notion of time (\autoref{sec:calculus-time},
-\autoref{sec:calculus-run}). We then discuss define a system for checking references to earlier
+\autoref{sec:calculus-semantics}) and extend it with the notion of time (\autoref{sec:calculus-time}).
+We then define a system for checking references to earlier
 time steps (\autoref{sec:calculus-timetypes}), formalize our coeffect-based optimization
 (\autoref{sec:calculus-optimization}) and show their soundness (\autoref{sec:calculus-properties}).
 
@@ -496,13 +501,14 @@ time steps (\autoref{sec:calculus-timetypes}), formalize our coeffect-based opti
 \label{sec:calculus-syntax}
 
 \autoref{fig:syntax} defines the syntax of the calculus. Addresses $Nm$ consist of a column
-name (such as \ident{A}, \ident{AB}) and a row index (starting from 1) and ranges are pairs of
+name (such as \ident{A}, \ident{B}, or \ident{AB}) and a row index (starting from 1) and ranges are pairs of
 addresses. Values can be constants $c$ or a two-dimensional arrays $\{ V_{i,j} \}$ with
 indices $i\in 1 .. n, j\in 1 .. m$.
 
-We treat error values as constants and omit explicit empty values \cite{williams-2020-spilled} and
-explicit error propagation \cite{bock-2020-sheetdef} for simplicity (functions called with error
-value as an argument return an error). Although we do not support spilling \cite{williams-2020-spilled},
+In contrast to prior work \cite{williams-2020-spilled,bock-2020-sheetdef}, we omit empty
+values, error values and implicit error propagation. We treat errors as constants and assume
+that built-in functions return error when called with the error value as argument.
+Although we do not support spilling \cite{williams-2020-spilled},
 we include arrays of values and later extend those to support ranges over time.
 Note also that a singleton array $\{ V \}$ is distinct from a primitive value $V$.
 Formulas can be primitive values $V$, range references $R$ or built-in function calls.
@@ -531,7 +537,7 @@ Formula evaluation $\sigma \vdash F \Downarrow V$ is then a relation that evalua
 $F$ to a value $V$ given the sheet definition $\sigma$. A value $V$ evaluates to itself.
 A function call $f(F_1,\ldots,F_n)$ evaluates its arguments and then obtains the result by
 applying $\llbracket f \rrbracket$, which defines the semantics of the built-in function,
-to the arguments. Evaluating a singleton range $a:a$ obtains a single value at the given address
+to the arguments. Evaluating a singleton range $a\!:\!a$ obtains a single value at the given address
 using dereferencing. Evaluating a range $a_1:a_n$ iterates over all addresses in the range.
 The helper \ident{size} returns the size of the range and $a+(i,j)$ returns an address moved
 by 1-based offsets $i$ and $j$.
@@ -546,9 +552,9 @@ order. As discussed earlier, sheet evaluation is not defined for sheets containi
 \[
 \begin{array}{lrcl}
 \textnormal{\textbf{Time}}         & t & \in & \mathbb{N}_1\\
-\textnormal{\textbf{Interval}}     & T & = & -t_1\!:\!-t_2\\
-\textnormal{\textbf{Range}}        & R & = & a_1\!:\!a_2 \lsep a_1\!:\!a_2[\tau]\\
-\textnormal{\textbf{Value}}        & V & = & \ldots \lsep \{ V_{t,i,j} \}\\
+\textnormal{\textbf{Interval}}     & T & = & E_1\!:\!E_2 \\
+\textnormal{\textbf{Range}}        & R & = & a_1\!:\!a_2 \lsep a_1\!:\!a_2[T]\\
+\textnormal{\textbf{Value}}        & V & = & \ldots \lsep t \lsep \{ V_{t,i,j} \}\\
 \end{array}
 \quad
 \begin{array}{lrcl}
@@ -558,8 +564,10 @@ order. As discussed earlier, sheet evaluation is not defined for sheets containi
 \textnormal{\textbf{History}}      & \omega & \in & \mathit{Address} \rightarrow \mathit{Timeline}\\
 \end{array}
 \]
+\vspace{-1em}
 \caption{Syntax of the \Timeline calculus with time.}
 \label{fig:syntax-time}
+\vspace{-1em}
 \end{figure}
 
 \subsection{Adding the time dimension}
@@ -568,7 +576,8 @@ order. As discussed earlier, sheet evaluation is not defined for sheets containi
 To model \Timeline, we extend the core calculus with a notion of discrete time.
 The extended syntax is shown in \autoref{fig:syntax-time}. Time $t$ is modelled using positive
 integers and, following the \Timeline implementation, we refer to history using negative
-values $-t$. An interval is defined by a pair of time values. A range $R$ can now refer to
+values $-t$. We treat time as a kind of value $V$. A time interval $T$ is defined by a pair
+of expressions that evalue to time values. A range $R$ can now refer to
 a three-dimensional range over a sheet area and a time interval. A reference to a single
 past value such as \tml{F19[-1]} is modelled as a singleton range \tml{F19:F19[-1:-1]}.
 Evaluating a reference to a three-dimensional range produces a three-dimensional array
@@ -589,42 +598,36 @@ of $t$ previous values of a cell, indexed by a time interval from $1$ to $t$.
 \begin{figure}
 \raggedright
 $\boxed{\textnormal{Formula evaluation:}~~\sigma, \omega \vdash F \Downarrow V}$
-
-\[
-N_1 m_1 [-t_1] + (t, i, j) = (N_1 + i - 1) (m_1 + j - 1) [-(t_1 + t - 1)]
-\]
-\\[-0.5em]
+\hfill
+$\boxed{\textnormal{History access:}~~\omega \vdash a[-t]\,!`\, V }$
+\\[0.25em]
 \[
 \inferrule{\sigma, \omega \vdash F \Downarrow V}{\sigma, \omega \vdash E \Rightarrow F \Downarrow V}
 \qquad
 \inferrule
-  {\omega \vdash a[-t]\,!`\,V}
-  {\sigma, \omega \vdash a\!:\!a[-t\!:\!-t] \Downarrow V}
+  {\sigma, \omega \vdash E \Downarrow -t \qquad \omega \vdash a[-t]\,!`\,V}
+  {\sigma, \omega \vdash a\!:\!a[E\!:\!E] \Downarrow V}
+\qquad
+\inferrule
+  {\omega(a)(t)=F}{\omega \vdash a[-t] \,!`\, V}
 \]
 \\[0.5em]
 \[
 \inferrule
-  {a_1\neq a_2 \vee t_1\neq t_2 \qquad \ident{size}(a_1\!:\!a_2)=(n, m)\qquad l = t_2 - t_1 + 1\\
+  {\sigma, \omega \vdash E_1 \Downarrow -t_1 \qquad \sigma, \omega \vdash E_2 \Downarrow -t_2 \\
+    a_1\neq a_2 \vee E_1\neq E_2 \qquad \ident{size}(a_1\!:\!a_2)=(n, m)\qquad l = t_2 - t_1 + 1\\
     \forall i\in 1..n, j\in 1..m, t\in 1..l ~.~ \omega \vdash a_1[-t_1] + (t,i,j) \,!`\, V_{t,i,j} }
   {\sigma, \omega \vdash a_1\!:\!a_2[-t_1\!:\!-t_2] \Downarrow \{ V_{t,i,j} \} }
 \]
-\\[0.75em]
-$\boxed{\textnormal{History access:}~~\omega \vdash a[-t]\,!`\, V }$
-\hfill
-$\boxed{\textnormal{Sheet evaluation:}~~\sigma, \omega \Downarrow \gamma}$
-\\[0.5em]
+\\[0.25em]
 \[
-\inferrule
-  {\omega(a)(t)=F}{\omega \vdash a[-t] \,!`\, V}
-\hspace{11em}
-\inferrule
-  {\forall a \in \ident{dom}(\sigma)~.~\gamma(a) = V \wedge \sigma, \omega \vdash \sigma(a) \Downarrow V}
-  {\sigma, \omega \Downarrow \gamma}
+N_1 m_1 [-t_1] + (t, i, j) = (N_1 + i - 1) (m_1 + j - 1) [-(t_1 + t - 1)]
 \]
 \caption{Reduction rules that define formula evaluation of the \Timeline calculus with time.}
 \label{fig:semantics-time}
 \end{figure}
 
+\subsubsection*{Formula evaluation}
 \autoref{fig:semantics-time} defines the extended semantics. Formula evaluation
 is now defined with respect to the sheet $\sigma$ but also previously evaluated values
 represented using a history $\omega$. The additional context can be easily added to the
@@ -636,63 +639,197 @@ To access past values, we define an auxiliary relation $\omega \vdash a[-t]\,!`\
 address dereferencing. However, the relation is defined with respect to the previously
 evaluated values and it accesses the past value from the timeline, rather than evaluating it.
 
-The evaluation again distinguishes the case when a range refers to a single value. If so,
-the value is obtained from the history and returned. For larger ranges, we iterate over
-all the values and build a three-dimensional array $\{ V_{t,i,j} \}$. We extend our earlier
-auxiliary definition of $+$ to also support computing an offset for an address at a specified time.
-The sheet evaluation remains unchanged, except that it now provides the history $\omega$
-to the formula evaluation. It evaluates the current values of the formulas, with respect
-to a given history.
+In general, time ranges are specified by expressions that need to be evaluated before
+accessing past values. The evaluation again distinguishes the case when a range (syntactically)
+refers to a single value. If so, the value is obtained from the history and returned. For other
+ranges, we iterate over all the values and build a three-dimensional array $\{ V_{t,i,j} \}$.
+We extend our earlier auxiliary definition of $+$ to also support computing an offset for an
+address at a specified time.
 
+Note also that some built-in functions are time-dependent. In particular, \tml{STEP()} returns
+the number of the current time step. To model this, we would need to supply additional information
+to the semantic function $\llbracket - \rrbracket$. We omit the details for simplicity.
+
+\begin{figure}
+\raggedright
+$\boxed{\textnormal{Sheet evaluation:}~~\sigma, \omega \Downarrow \gamma}$
+\[
+\inferrule
+  {\forall a \in \ident{dom}(\sigma)~.~\gamma(a) = V \wedge \sigma, \omega \vdash \sigma(a) \Downarrow V}
+  {\sigma, \omega \Downarrow \gamma}
+\]
+
+$\boxed{\textnormal{Iterated evaluation:}~~\sigma \Downarrow_n \gamma}$
+\\[0.1em]
+\[
+\begin{array}{ll}
+\sigma \Downarrow_n \gamma_n \iff \sigma, \omega_{n-1} \Downarrow \gamma_n \quad
+  &\textnormal{where}~\forall k \in 0 \ldots n\!-\!1\\[0.5em]
+\quad \omega_0(a) = \{ 1 \mapsto V_1, \ldots, n \mapsto V_n \}
 ~
+  &\textnormal{where}~\sigma(a) = E_n \Rightarrow \ldots \Rightarrow E_1 \Rightarrow E
+    ~\textnormal{and}~\emptyset, \emptyset \vdash E_i \Downarrow V_i\\[0.5em]
+\quad \omega_{k+1}(a)(1) = \gamma_{k+1}(a)
+  &\textnormal{where}~\sigma, \omega_k \Downarrow \gamma_{k+1}\\
+\quad \omega_{k+1}(a)(1+t) = \omega_k(t)
+\end{array}
+\]
+\caption{Sheet evaluation and iterated sheet evaluation for \Timeline.}
+\label{fig:semantics-sheet}
+\end{figure}
 
-\todo{Also model the case where interval is defined by expressions. This
-leads to unbounded buffers.}
+\subsubsection*{Sheet evaluation}
+Ordinary spreadsheets are evaluated to a grid of values using the $\sigma\Downarrow\gamma$
+relation (\autoref{fig:semantics}). In \Timeline, the evaluation proceeds
+iteratively in discrete time steps for as long as the user desires (\autoref{fig:semantics-sheet}).
+In each step, the sheet is evaluated using the sheet evaluation  $\sigma, \omega \Downarrow \gamma$,
+relation which computes the current values of the formulas, with respect to a given history.
+This relation remains unchanged from the ordinary version, except that it now provides the
+current history $\omega$ to the formula evaluation.
 
-\todo{Also model some special functions, at least \tml{STEP()}.}
+The iterated evaluation $\sigma\Downarrow_n\gamma$ models the first $n$ step of the evaluation of
+a \Timeline spreadsheet. It first constructs the initial history $\omega_0$ which is obtained by
+evaluating the default values (expressions before the \tml{=>} operator) for each cell. The number
+of default values corresponds to the number of \tml{E =>} prefixes in the formula of the cell.
+Note that the default values are evaluated with an empty sheet and an empty history as the context.
+That is, an expression that defines a default value cannot itself reference other cells or their
+historical values (the semantics could be extended to allow referencing of other
+cells with greater or equal number of default values).
 
-\subsection{Running the computation}
-\label{sec:calculus-run}
+After constructing the initial history $\omega_0$, the iterated evaluation constructs a sequence
+of histories $\omega_1, \ldots, \omega_{n-1}$ such that the previous value of a cell in step $k+1$
+becomes the value in the evaluated grid in step $k$ and all earlier past values are shifted by 1.
+
+\subsection{Checking timed accesses}
+\label{sec:calculus-timetypes}
+
+The problem of type inference and type checking for spreadsheets has been adressed by others
+\cite{ahmad-2003-types,abraham-2006-types} and their approaches could be directly applied to
+\Timeline. A problem unique to \Timeline is ensuring that sufficient number of past values
+is available.
+
+see \autoref{fig:timetypes}
+
+with this, we could drop (old) values from the history
+and also make sure there is enough default values
+
+\todo{But we do not have infinity in $\omega_0$ yet}
+
+
+% A1 = 0 => A1[-1]+1
+% B1 = 0 => A1[-1]
+
+\begin{figure}
+\[
+\inferrule
+  {~}
+  {\Omega \vdash V~\ident{ok}}
+\qquad
+\inferrule
+  {~}
+  {\Omega \vdash a_1\!:\!a_2~\ident{ok}}
+\qquad
+\inferrule
+  {\Omega \vdash E_i~\ident{ok}}
+  {\Omega \vdash f(E_1, \ldots, E_n)~\ident{ok}}
+\]
+\\[-0.25em]
+\[
+\inferrule
+  {\Omega(a)\ge t}
+  {\Omega \vdash a[-t]~\ident{ok}}
+\qquad
+\inferrule
+  {\forall a_i \in \ident{expand}(a_1\!:\!a_2).\,\Omega \vdash a_i[-t]~\ident{ok}\quad t=\ident{max}(t_1,t_2)}
+  {\Omega \vdash a_1\!:\!a_2[-t_1\!:\!-t_2]~\ident{ok}}
+\]
+\\[-0.25em]
+\[
+\inferrule
+  {\Omega(a) = \infty}
+  {\Omega \vdash a[E_1\!:\!E_2]~\ident{ok}}
+\qquad
+\inferrule
+  {\forall a_i \in \ident{expand}(a_1\!:\!a_2).\,\Omega \vdash a_i[E_1\!:\!E_2]~\ident{ok}
+    \quad (E_1 \neq t_1) \vee (E_2 \neq t_2)}
+  {\Omega \vdash a_1\!:\!a_2[E_1\!:\!E_2]~\ident{ok}}
+\]
+\\[-0.5em]
+\[
+\ident{expand}(a_1\!:\!a_2) =
+  \{ a_1 + (i,j), \forall i\in 1..n, j\in 1..m \}
+    ~\text{where}~ (n,m) = \ident{size}(a_1\!:\! a_2)
+\]
+\caption{Checking}
+\label{fig:timetypes}
+\end{figure}
 
 \newpage
-
-Evaluation in time
-
-\[
-\begin{array}{l}
-\omega_0(a) = \{ 1 \mapsto V_1, \ldots, k \mapsto V_k \}
-\qquad
-\textnormal{if}~\sigma(a) = E_k \Rightarrow \ldots \Rightarrow E_1 \Rightarrow E
-\\
-\textnormal{where}~\sigma, \emptyset \vdash E_i \Downarrow V_i
-\end{array}
-\]
-
-\[
-\begin{array}{l}
-\omega_{n+1}(a)(1) = \gamma_n(a) \\
-\omega_{n+1}(a)(1+t) = \omega_n(t)
-\end{array}
-\qquad
-\textnormal{where}~\sigma, \omega_n \Downarrow \gamma_n
-\]
 
 \subsection{Coeffect optimization}
 \label{sec:calculus-optimization}
 
-$\mathcal{B} : \textit{Address} \rightarrow \mathbb{N}_0$
+before
+\newcommand{\coeff}{\,\raisebox{0.3ex}{\text{\scriptsize{@}}}\,}
+
+\[
+\inferrule
+  {\Omega(a)\ge t_0\!+\!t_1}
+  {\Omega \coeff t_0 \vdash a[-t_1]~\ident{ok}}
+\qquad
+\inferrule
+  {\Omega(a) = \infty}
+  {\Omega \coeff t_0 \vdash a[E_1\!:\!E_2]~\ident{ok}}
+\]
+
+after
+
+\[
+\inferrule
+  {a \notin \ident{dom}(\Omega) \quad \Omega \coeff t_0\!+\!t_1 \vdash_\sigma \sigma(a)~\ident{ok} }
+  {\Omega \coeff t_0 \vdash_\sigma a[-t_1]~\ident{ok}}
+\qquad
+\inferrule
+  {a \notin \ident{dom}(\Omega) \quad \Omega \coeff \infty \vdash_\sigma \sigma(a)~\ident{ok} }
+  {\Omega \coeff t_0 \vdash_\sigma a[E_1\!:\!E_2]~\ident{ok}}
+\]
+
+??
+
+~
+
+funny history access
+
+~
+
+\[
+\inferrule
+  {\sigma, \omega(a)(t)=F}{\omega \vdash a[-t] \,!`\, V}
+\]
+
+x
+
+\[
+\textsf{shift}_t(\omega)(a)(t') = \omega(a)(t + t')
+\]
+
+x
+
+\[
+\inferrule
+  {\omega(a)(t)=\bot \qquad \sigma(a)=F \qquad \sigma,\textsf{shift}_t(\omega) \vdash F \Downarrow V}
+  {\sigma, \omega \vdash a[-t] \,!`\, V}
+\]
 
 \newpage
 
-\subsection{Checking timed accesses}
-\label{sec:calculus-timetypes}
 
 check that all items accessed at previous time step have enough past values specified
 
 \subsection{Properties and coeffect soundness}
 \label{sec:calculus-properties}
 
-sheet evaluation is deterministic?
+sheet evaluation is deterministic
 
 \section{Case studies}
 \label{sec:case-studies}
