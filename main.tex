@@ -5,6 +5,7 @@
 \usepackage{listings}
 \usepackage{mathpartir}
 \usepackage[dvipsnames]{xcolor}
+\usepackage{stmaryrd}
 
 % https://tex.stackexchange.com/questions/471464/inverted-exclamation-mark-in-mathmode
 \DeclareMathSymbol{\mathinvertedexclamationmark}{\mathclose}{operators}{'074}
@@ -32,6 +33,7 @@
 \newcommand{\ident}[1]{\textsf{#1}}
 \newcommand{\kvd}[1]{\textsf{\color{RoyalPurple}{#1}}}
 \newcommand{\lsep}{\;\;|\;\;}
+\newcommand{\cellref}[1]{\textsf{\color{Bittersweet}{#1}}}
 
 \setcopyright{acmlicensed}
 \copyrightyear{2026}
@@ -67,7 +69,6 @@
     literate=
       {zz5}{{{\color{OliveGreen}{0.5}}}}3
       {syl}{{{\color{Bittersweet}{scale\_y\_log10}}}}{11}
-      {0.5}{{{\color{OliveGreen}{0.5}}}}3
       {1}{{{\color{OliveGreen}{1}}}}1
       {0}{{{\color{OliveGreen}{0}}}}1
       {~}{{\hspace{0.2em}}}1
@@ -75,7 +76,7 @@
 
 
 \lstdefinelanguage{timeline}{
-    morekeywords={IF, AND, STEP, COS, RADIANS, MAX, SIN, POWER, SUM, POINT, GRAPH, STROKECOLOR, LINE, OVERLAY, AXES, KEYPRESS, IMAGE, FALSE, NOT, MIN,FILLCOLOR, COLUMN, APPEND, CAT},
+    morekeywords={IF, AND, STEP, COS, RADIANS, MAX, SIN, POWER, SUM, POINT, GRAPH, STROKECOLOR, LINE, OVERLAY, AXES, KEYPRESS, IMAGE, FALSE, NOT, MIN,FILLCOLOR, COLUMN, APPEND, COORD, ASPECTRATIO},
     morekeywords=[2]{B5,C5,D5,E5,F5,B3,C3,D3,E3,F3,G3,H3,I3},
     sensitive=true,
     morestring=[b]",
@@ -117,6 +118,9 @@
       {0}{{{\color{OliveGreen}{0}}}}1
       {-1}{{{\color{OliveGreen}{-1}}}}2
       {1}{{{\color{OliveGreen}{1}}}}1
+      {2}{{{\color{OliveGreen}{2}}}}1
+      {cursor}{{{$\bullet$}}}1
+      {~}{{\hspace{0.1em}}}1
 }
 \newcommand{\tml}[1]{\lstinline[style=timelineStyle,basicstyle=\small\ttfamily]{#1}}
 \newcommand{\lng}[1]{\lstinline[style=langStyle,basicstyle=\small\ttfamily]{#1}}
@@ -690,16 +694,16 @@ large number of primitive constructs and its range of charts is still limited.
 
 \begin{figure}
 \begin{overpic}[width=\textwidth]{fig/fruits}
-\put(35,15){\circledsm{3}}
-\put(33.5,4.5){\circledsm{4}}
-\put(95,20){\circledsm{5}}
+\put(41,15.3){\circledsm{1}}
+\put(50.5,15.3){\circledsm{2}}
+\put(21.2,2.5){\circledsm{3}}
+\put(95,15.5){\circledsm{4}}
 \end{overpic}
-\caption{Numerical cannonball firing simulation in \Timeline. \circled{1} Single table records attributes
-of multiple cannonballs over time. \circled{2} The attributes are computed based on current and
-previous values of other attributes. \circled{3} A separate table plots past positions as lines.
-\circled{4} A table with configuration and composed final chart. \circled{5}~The composed chart
-is then embedded in the sheet.}
-\label{fig:cannon}
+\caption{Composing rich data visualization in \Timeline. \circled{1} Columns are constructed
+using the fruit name and popularity. \circled{2} Image for each fruit is loaded, positioned and
+also displayed inside the table. \circled{3} Columns and images are composed in a single cell,
+\circled{4} which is displayed as a chart in the spreadsheet.}
+\label{fig:fruits}
 \vspace{-0.25em}
 \end{figure}
 
@@ -707,43 +711,164 @@ is then embedded in the sheet.}
 
 A more flexible approach, which fits well with the spreadsheet paradigm is based on the
 composition of graphical shapes. This has been developed in the context of functional
-programming \cite{petricek-2021-compost} and is available as a JavaScript library named
-Compost.js \cite{petricek-2017-compostjs}, but is conceptually similar to a design prototype
+programming \cite{petricek-2021-compost}, but is conceptually similar to a design prototype
 envisioned for spreadsheets \cite{marasoiu-2019-cuscus}.
 
-In
-
-
-
-
+In composable visualizations, graphical shapes are specified using domain values such
+as exchange rate, number of votes, country names, or population. When composed, the
+system infers composite scales, checks that all shapes have a compatible scale, and arranges
+individual shapes. This makes it possible to compose visualizations that combine different
+visual elements generated from data. For example, the following
+uses Compost.js \cite{petricek-2017-compostjs} to overlay fruit images over a column chart:
 
 \begin{lstlisting}[style=langStyle]
 let fruitBars =
   c.preserveAspectRatio("none", c.overlay(fruits.map(f =>
-      c.overlay([
-        c.fillColor(f.color,
-          c.column(f.kind, f.value)),
-        c.image("img/" + f.kind + ".png",
-          [[f.kind, 0], 0], [[f.kind, 1], f.value])
-      ])
-     )))
+    c.overlay([
+      c.fillColor(f.color,
+        c.column(f.kind, f.value)),
+      c.image("img/" + f.kind + ".png",
+        [[f.kind, 0], 0], [[f.kind, 1], f.value]) ])
+    )))
 \end{lstlisting}
 
+The snippet iterates over the data using \lng{fruits.map}. For each data point, it
+creates a column and an image and overlays the two. The X scale is categorical and
+the image position is specified as \lng{[f.kind,0]} and \lng{[f.kind,1]}, which defines
+the left and theright end of the area allocated for the category \lng{f.kind}. The Y scale is
+continuous and the values are numbers. The individual images are combined using
+\lng{overlay} and the snippet uses \lng{preserveAspectRatio} to enable scaling.
+
+As shown in \autoref{fig:fruits}, the same chart can be constructed in \Timeline.
+We specify input data in a table and add two columns representing the column and
+image. Those are then overlaid in cell \tml{C8}:
 
 \begin{lstlisting}[style=timelineStyle]
-/* Column */
+/* Construct column and image graphical shapes for each data point */
 E3 = FILLCOLOR(COLUMN(B3, C3))
-/* Fruit */
-F3 = GRAPH(IMAGE(APPEND(B3, ".png"), POINT(CAT(B3,0),0), POINT(CAT(B3,1), 1)))
-/* Graph */
+F3 = GRAPH(IMAGE(APPEND(B3, ".png"), POINT(COORD(B3,0),0), POINT(COORD(B3,1), 1)))
+\end{lstlisting}
+
+\vspace{-0.25em}
+\begin{lstlisting}[style=timelineStyle]
+/* Overlay chart elements and specify additional chart properties */
 C8 = AXES("left bottom", ASPECTRATIO("none", OVERLAY(E3:E6,F3:F6)))
 \end{lstlisting}
 
+The column is constructed using \tml{COLUMN} which takes a categorical value (fruit name)
+and a numerical value (fruit popularity). It creates a rectangle that spans the whole area allocated
+for the category in the X dimension and ranges from 0 to the specified value in the Y dimension.
+When loading an image, we construct the image URL (simplified for presentation) and specify its
+location using \tml{COORD}, which creates a categorical coordinate and \tml{POINT}, which combines
+X and Y coordinates. Note that \tml{COLUMN} is built on top of a primitive for filling polygon
+that takes a list of points.
 
-xx
+The programming model offered by composable visualizations in \Timeline offers many of the user
+experiences prototyped in Cuscus \cite{marasoiu-2019-cuscus}. Like Cuscus, graphical shape of a
+visualization can be specified using formulas in a table that supports the drag down operation,
+enabling non-programmers to create visualizations using tools they are already familiar with.
+\Timeline improves on Cuscus in that it specifies shape dimensions in domain values and allows
+more flexible composition, such as overlaying a specified range. Visual shapes in \Timeline cannot
+be, however, modified using direct manipulation. The encouraging results of user studies performed
+for Cuscus thus likely aslo apply to visualizations in \Timeline.
 
-\subsection{Typed holes}
+\begin{figure}
+
+\raisebox{-0.45\height}{\begin{overpic}[width=10em]{fig/holes1}\put(88,53){\circledsm{1}}\end{overpic}}
+$~~\boldsymbol{\Rightarrow}~~$
+\raisebox{-0.45\height}{\begin{overpic}[width=10em]{fig/holes2}\put(88,53){\circledsm{2}}\end{overpic}}
+$~~\boldsymbol{\Rightarrow}~~$
+\raisebox{-0.45\height}{\begin{overpic}[width=10em]{fig/holes3}\put(88,53){\circledsm{3}}\end{overpic}}
+\caption{Constructing a formula for Fahrenheit to Celsius conversion. \circled{1}
+After typing "(" the user clicks on a wrong cell and a reference to it is inserted,
+\circled{2} then they click on the right cell to correct the formula. \circled{3} After
+writing the rest of the formula, they click anywhere on the sheet to stop editing it.}
+\label{fig:holes}
+\end{figure}
+
+\newcommand{\hhole}[1]{{\color{Purple}{\llparenthesis}} \hspace{0.05em} #1 \hspace{0.05em} {\color{Purple}{\rrparenthesis}}}
+\newcommand{\errrec}[1]{{\color{Emerald} #1}}
+\newcommand{\hcmt}[1]{\text{\color{gray}\small #1}}
+
+\begin{figure}[t]
+\vspace{-0.5em}
+\[
+\begin{array}{r@{\;\;}r@{\;\;}l}
+\hhole{}
+ & \rightsquigarrow & (\hhole{}\errrec{)} \\
+ & \rightsquigarrow & (\hhole{\mathsf{B4}}\errrec{)} \\
+ & \rightsquigarrow & (\hhole{\mathsf{B3}}\errrec{)} \\
+ & \rightsquigarrow & (\mathsf{B3}-\hhole{}\errrec{)} \\
+ & \rightsquigarrow & (\mathsf{B3}-32\errrec{)} \,\rightsquigarrow\, (\mathsf{B3}-32) \\
+ & \rightsquigarrow & (\mathsf{B3}-32)*\hhole{} \,\rightsquigarrow\, (\mathsf{B3}-32)*5 \\
+ & \rightsquigarrow & (\mathsf{B3}-32)*5/\hhole{} \,\rightsquigarrow\, (\mathsf{B3}-32)*5/9
+\end{array}
+\hspace{-10em}
+\begin{array}{l}
+  \hcmt{The user starts typing and a hole is inserted}\\
+  \hcmt{The user clicks on B4 to fill the hole}\\
+  \hcmt{They correct the error with another click} \\
+  \hcmt{As they type, the original hole is removed and a new one is added}\\
+  \hspace{11em}\hcmt{The user completes the expression}\\
+  \hspace{11em}\hcmt{Hole is added after $*$ and then removed}\\
+  \hspace{11em}\hcmt{The same happens when adding $/5$}\\[0.2em]
+\end{array}
+\]
+\vspace{-0.5em}
+\caption{Step-by-step editing of the Fahrenheit to Celsius formula using automatically inserted holes.}
+\label{fig:editing}
+\vspace{-0.5em}
+\end{figure}
+
+\subsection{Editing formulas with holes}
 \label{sec:features-holes}
+
+An unexpected area where programming language theory becomes useful in the implementation of a spreadsheet
+system is formula editing. In popular spreadsheets (Excel, Google Sheets), users can click
+on cells while editing a formula to insert a cell reference.
+Interestingly, a cell reference is not inserted on every click, but only when the edit is
+meaningful. Moreover, click can also modify a previously inserted cell reference. A specific
+scenario is illustrated in \autoref{fig:holes}.
+
+Precisely capturing the desired behavior is a challenge shared with recent work on collaborative
+editing \cite{litt-2022-peritext}. In our case, the desired behavior follows three rules
+(writing \tml{cursor} for the cursor location):
+
+\begin{itemize}[leftmargin=0.5cm]
+\item A reference is inserted when the cursor is in a position where an expression is expected.
+  This includes a newly created formula $\mathsf{=}\,\bullet$, operator parameters
+  \tml{=10+cursor} or a call \tml{=MIN(10,cursor}.
+\item A cell reference is replaced if it was just inserted, but the user clicks on a different cell.
+\item In other cases, editing is completed and the clicked formula is selected. This includes,
+  locations inside a formula such as \tml{=1cursor+2} or \tml{=MIN(1cursor,2)}, as well as
+  at the end \tml{=MIN(10,A1)cursor}.
+\end{itemize}
+
+To implement the desired behavior, we adopt the notion of holes \cite{mcbride-2000-holes}
+as used in the Hazel programming environment \cite{omar-2017-hazelnut,omar-2019-typedholes}.
+Hazel introduced holes to support working with incomplete programs. A missing or unfinished
+sub-expression in a program is represented by a hole $\hhole{}$, which allows
+the rest of the program to be type checked and even run. Non-empty holes, written as
+$\hhole{e}$, represent sub-expressions of inconsistent type, i.e.,
+a type error that needs to be resolved later.
+
+In the \Timeline formula editor, we use a (possibly non-empty) hole to represent the location
+where a cell reference can be inserted using a click. We adopt the Hazel notation writing
+$\hhole{}$ for holes and we write $\errrec{)}$ for tokens assumed during error recovery.
+The individual steps of the interaction shown in \autoref{fig:holes} are listed in
+\autoref{fig:editing} (writing $\rightsquigarrow$ for an editing step).
+
+The parser inserts a hole when it encounters an error at the cursor
+location.\footnote{Excel supports intersection ranges written as a space-separated list of
+references such as $\mathsf{\color{Bittersweet} A1}\!:\!\mathsf{\color{Bittersweet} C3}~~\mathsf{\color{Bittersweet} B2}\!:\!\mathsf{\color{Bittersweet} D4}$.
+These are not currently supported in \Timeline, but they would be the only place where a hole needs to
+be inserted in the absence of a parser error. Moving the cursor to the middle of the list should
+insert a hole, i.e., $\mathsf{\color{Bittersweet} A1}\!:\!\mathsf{\color{Bittersweet} C3}~\hhole{}~\mathsf{\color{Bittersweet} B2}\!:\!\mathsf{\color{Bittersweet} D4}$.}
+Clicking puts a cell reference inside the hole, possibly replacing a previous reference.
+Holes are removed when the user enters a valid input that completes the expression.
+Note that a formula such as $1+\hhole{}$ can be completed in two ways. Typing a cell reference
+results in $1 + \mathsf{A1}$, while clicking on the same cell results in
+$1 + \hhole{\mathsf{A1}}$ and allows further clicks to change the reference.
 
 \newpage
 
