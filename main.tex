@@ -1281,10 +1281,8 @@ we only needed to check formulas at the current time step $t=0$. Notation-wise, 
 style of flat coeffect calculi~\cite{petricek-2014-coeffects}.
 
 The generalized coeffect-based checking rules for past cell references are shown in
-\autoref{fig:coefftypes}. We omit rules for other kinds of expressions as well as rules for accessing
-a cell range. All of those remain the same as before, except that they pass the unmodified context
-$\Omega\coeff t$ to their premises.
-
+\autoref{fig:coefftypes}.
+%
 When accessing a time interval specified by statically known time indices $a[t_1\!:\!t_2]$,
 we distinguish between two cases. In case the cell at the address $a$ is stateful,
 the access is correct if the context $\Omega$ guarantees a sufficient number of past values,
@@ -1300,14 +1298,10 @@ are similar. If the cell at $a$ is stateful, it is required to have unbounded bu
 values. If the cell at $a$ is stateless, it needs to be possible to evaluate the formula
 $\sigma(a)$ at an arbitrary past time step, specified by setting the coeffect to $\infty$.
 
-\subsubsection*{Coeffect-based formula evaluation}
-In the standard formula evaluation, defined before (\autoref{sec:calculus-time}), access to past
-values of a cell is defined using the $\omega \vdash a[-t]\,!`\, V$ rule, which finds
-the previous value in the timeline for the given cell using $\omega(a)(t)$.
-In the generalized coeffect-based evaluation, the value accessed using $a[-t]$ can be obtained
-from the timeline $\omega(a)$ when the cell $a$ is stateful. If the cell is stateless,
-$\omega(a)$ is not defined and the value has to be recomputed using the formula
-$\sigma(a)=F$.
+Finally, a new rule is also needed for checking access to a cell range via a reference.
+When evaluated at a previous time index $t_0$, the referenced cells need to be accessible
+at the same time index. Rules for other kinds of expressions are omitted and remain the same
+as before, except that they pass the unmodified context $\Omega\coeff t$ to their premises.
 
 \begin{figure}[t]
 \vspace{-0.25em}
@@ -1323,7 +1317,7 @@ $\boxed{\textnormal{Coeffect-based checking:}~~\Omega\coeff t \vdash_\sigma F~\i
   {\Omega(a) = \infty}
   {\Omega \coeff t_0 \vdash_\sigma a[E_1\!:\!E_2]~\ident{ok}}
 \]
-\\
+\\[0.25em]
 \[
 \inferrule
   {a \notin \ident{dom}(\Omega) \quad \Omega \coeff t_0\!+\!t \vdash_\sigma \sigma(a)~\ident{ok} \quad t = \ident{max}(t_1,t_2) }
@@ -1333,8 +1327,14 @@ $\boxed{\textnormal{Coeffect-based checking:}~~\Omega\coeff t \vdash_\sigma F~\i
   {a \notin \ident{dom}(\Omega) \quad \Omega \coeff \infty \vdash_\sigma \sigma(a)~\ident{ok} }
   {\Omega \coeff t_0 \vdash_\sigma a[E_1\!:\!E_2]~\ident{ok}}
 \]
+\\[0.25em]
+\[
+\inferrule
+  {\forall a_i \in \ident{expand}(a_1\!:\!a_2).\;\Omega \coeff t_0 \vdash_\sigma \sigma(a_i)\;\ident{ok}}
+  {\Omega \coeff t_0 \vdash_\sigma a_1\!:\!a_2\;\ident{ok}}
+\]
 \vspace{-0.5em}
-\caption{Coeffect-based system for checking past value accesses}
+\caption{Coeffect-based system for checking references and past value accesses}
 \label{fig:coefftypes}
 \end{figure}
 \begin{figure}[t]
@@ -1380,6 +1380,14 @@ $\boxed{\textnormal{Coeffect-based evaluation:}~~\sigma \Downarrow^\Omega_n \gam
 \label{fig:semantics-coeffsheet}
 \end{figure}
 
+\subsubsection*{Coeffect-based formula evaluation}
+In the standard formula evaluation, defined before (\autoref{sec:calculus-time}), access to past
+values of a cell is defined using the $\omega \vdash a[-t]\,!`\, V$ rule, which finds
+the previous value in the timeline for the given cell using $\omega(a)(t)$.
+In the generalized coeffect-based evaluation, the value accessed using $a[-t]$ can be obtained
+from the timeline $\omega(a)$ when the cell $a$ is stateful. If the cell is stateless,
+$\omega(a)$ is not defined and the value has to be recomputed using the formula
+$\sigma(a)=F$.
 
 The rules modelling the coeffect-based past value access are shown in \autoref{fig:coeffeval}.
 The rules for formula evaluation (\autoref{fig:semantics}, \autoref{fig:semantics-time})
@@ -1525,34 +1533,103 @@ $\forall a\in\ident{dom}(\Omega).\;\exists E,F.\;\sigma(a)=E\Rightarrow F$.
 We write $\sigma:\Omega$ if a sheet $\sigma$ is well-timed and well-initialized with respect to $\Omega$.
 \end{definition}
 
+We need to show that, as the spreadsheet evaluates, the history will always contain the required
+number of values for all stateful cells and that, if this is the case, the evaluation will complete
+successfully. We define the condition as:
+
+\begin{definition}[Adequacy]
+We say that a history $\omega$ is adequate with respect to the context $\Omega$, written as
+$\omega \vDash \Omega$ when $\forall a \in \mathit{dom}(\Omega),\,\forall t \le \Omega(a).\;
+  \omega(a)(t)$ is defined.
+\end{definition}
+
+Now, we can show that, if we have a well-timed and well-initialized sheet $\sigma$ and some formula
+$F$ from the sheet then, if the formula can be checked at a past time step $t_0$, then
+the formula can also be evaluated at that past time step. This is the key auxiliary lemma,
+necessary to show that coeffect-based optimization is sound later.
+
+\begin{lemma}[Formula evaluation progress]
+\label{lem:progress}
+If $\sigma\!:\!\Omega$, $\omega \vDash \Omega$, and
+$\Omega \coeff t_0 \vdash_\sigma F~\ident{ok}$,
+then it is the case that $\sigma, \ident{shift}_{t_0}(\omega) \vdash F \Downarrow V$ for some~$V$.
+\end{lemma}
+\begin{proof}
+By induction on the derivation of $\Omega \coeff t_0 \vdash_\sigma F~\ident{ok}$
+(well-founded since $\sigma$ is acyclic).
+
+Values and functions directly follow from the induction hypothesis.
+For current range reference $a_1\!:\!a_2$, the rule in \autoref{fig:coefftypes}
+requires coeffect $t_0$ for all the cells in the range and so they can also be
+evaluated. For stateless past value accesses, the induction hypothesis applies
+with the coeffect $t_0+t$. Adequacy of $\omega$ ensures that the shifted history has
+sufficient number of past values. For stateful past value accesses, the value is
+available by adequacy. The dynamic access cases are analogous.
+\end{proof}
+
+\begin{lemma}[Adequacy preservation]
+\label{lem:invariant}
+If $\sigma\!:\!\Omega$ then $\omega'_k \vDash \Omega$ for all $k \ge 0$.
+\end{lemma}
+\begin{proof}
+By induction on $k$. For $k=0$, $\omega'_0 = \omega_0|\Omega$. The adequacy follows from
+the fact that the sheet is well-initialized and $\omega_0$ is defined for all $t \ge 1$ and the restriction
+retains the required entries.
+
+For the inductive step, the sheet can evaluate by \autoref{lem:progress}. The
+new history $\omega'_{k+1}=\omega_{k+1}|\Omega$, constructed from the previous adequate
+history, is defined for all required cells and time indices (using $\gamma_{k+1}$ for $t=1$ and
+$\omega'_k$ for subsequent time indices).
+\end{proof}
+
 \begin{theorem}[Soundness]
+\label{thm:soundness}
 For any $\sigma, \Omega$ such that $\sigma\!:\!\Omega$, for any $n$, $\exists \gamma.\;\sigma\Downarrow^\Omega_n \gamma$.
 \end{theorem}
-%\begin{proof}
-%By induction over $n$. For $n=1$, $\gamma_1$ is $\sigma, \omega_0|\Omega \Downarrow \gamma_1$
-%\end{proof}
-
-
-
-
-
-\newpage
+\begin{proof}
+By induction on $n$.
+\autoref{lem:invariant} gives $\omega'_k \vDash \Omega$ at every step $k$.
+\autoref{lem:progress} with $t_0 = 0$ then gives $\sigma, \omega'_k \Downarrow \gamma_{k+1}$
+for each $k$, establishing $\sigma \Downarrow^\Omega_n \gamma_n$.
+\end{proof}
 
 \section{Case studies}
 \label{sec:case-studies}
+
 
 \subsection{Formative interviews}
 
 \subsection{Agent-bsaed}
 \label{sec:case-abm}
 
+\begin{figure}
+\includegraphics[width=\textwidth]{fig/case-boids}
+\caption{xxx}
+\label{fig:case-boids}
+\vspace{-0.25em}
+\end{figure}
+
 \subsection{Physics}
 \label{sec:case-physics}
+
+\begin{figure}
+\includegraphics[width=\textwidth]{fig/case-planets}
+\caption{xxx}
+\label{fig:case-boids}
+\vspace{-0.25em}
+\end{figure}
 
 \subsection{Finance}
 \label{sec:case-finance}
 
 (=signal processing)
+
+\begin{figure}
+\includegraphics[width=\textwidth]{fig/case-finance}
+\caption{xxx}
+\label{fig:case-boids}
+\vspace{-0.25em}
+\end{figure}
 
 
 
