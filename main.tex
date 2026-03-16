@@ -35,6 +35,9 @@
 \newcommand{\lsep}{\;\;|\;\;}
 \newcommand{\cellref}[1]{\textsf{\color{Bittersweet}{#1}}}
 
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+
 \setcopyright{acmlicensed}
 \copyrightyear{2026}
 \acmYear{2026}
@@ -76,7 +79,9 @@
 
 
 \lstdefinelanguage{timeline}{
-    morekeywords={IF, AND, STEP, COS, RADIANS, MAX, SIN, POWER, SUM, POINT, GRAPH, STROKECOLOR, LINE, OVERLAY, AXES, KEYPRESS, IMAGE, FALSE, NOT, MIN,FILLCOLOR, COLUMN, APPEND, COORD, ASPECTRATIO, INDEX, INDIRECT, OFFSET},
+    morekeywords={IF, AND, STEP, COS, RADIANS, MAX, SIN, POWER, SUM, POINT, GRAPH, STROKECOLOR,
+      LINE, OVERLAY, AXES, KEYPRESS, IMAGE, FALSE, NOT, MIN,FILLCOLOR, COLUMN, APPEND, COORD,
+      ASPECTRATIO, INDEX, INDIRECT, OFFSET, RANDOM},
     morekeywords=[2]{B5,C5,D5,E5,F5,B3,C3,D3,E3,F3,G3,H3,I3},
     sensitive=true,
     morestring=[b]",
@@ -1133,7 +1138,7 @@ $\boxed{\textnormal{Iterated evaluation:}~~\sigma \Downarrow_n \gamma}$
 ~
 \qquad \omega_{k+1}(a)(1) = \gamma_{k+1}(a)\quad
   (\textnormal{where}~\sigma, \omega_k \Downarrow \gamma_{k+1})\\[0.25em]
-\qquad \omega_{k+1}(a)(1+t) = \omega_k(t)
+\qquad \omega_{k+1}(a)(1+t) = \omega_k(a)(t)
 \end{array}
 \]
 \caption{Sheet evaluation and iterated sheet evaluation for \Timeline.}
@@ -1307,16 +1312,16 @@ $\sigma(a)=F$.
 \begin{figure}[t]
 \vspace{-0.25em}
 \raggedright
-$\boxed{\textnormal{Coeffect-based checking:}~~\Omega\coeff t \vdash F~\ident{ok} }$
+$\boxed{\textnormal{Coeffect-based checking:}~~\Omega\coeff t \vdash_\sigma F~\ident{ok} }$
 
 \[
 \inferrule
   {\Omega(a)\ge t_0\!+\!t \quad t = \ident{max}(t_1,t_2)}
-  {\Omega \coeff t_0 \vdash a[-t_1\!:\!-t_2]~\ident{ok}}
+  {\Omega \coeff t_0 \vdash_\sigma a[-t_1\!:\!-t_2]~\ident{ok}}
 \qquad
 \inferrule
   {\Omega(a) = \infty}
-  {\Omega \coeff t_0 \vdash a[E_1\!:\!E_2]~\ident{ok}}
+  {\Omega \coeff t_0 \vdash_\sigma a[E_1\!:\!E_2]~\ident{ok}}
 \]
 \\
 \[
@@ -1338,10 +1343,10 @@ $\boxed{\textnormal{Coeffect-based access:}~~\sigma, \omega \vdash a[-t]\:!`\:V 
 
 \[
 \inferrule
-  {\sigma, \omega(a)(t)=V}{\sigma, \omega \vdash a[-t] \,!`\, V}
-\qquad
+  {\omega(a)(t)=V}{\sigma, \omega \vdash a[-t] \,!`\, V}
+\qquad\qquad
 \inferrule
-  {a\notin\ident{dom}(\omega) \quad \sigma(a)=F \quad \sigma,\textsf{shift}_t(\omega) \vdash F \Downarrow V}
+  {a\notin\ident{dom}(\omega) \quad \sigma,\textsf{shift}_t(\omega) \vdash \sigma(a) \Downarrow V}
   {\sigma, \omega \vdash a[-t] \,!`\, V}
 \]
 \\[-0.25em]
@@ -1355,19 +1360,19 @@ $\boxed{\textnormal{Coeffect-based access:}~~\sigma, \omega \vdash a[-t]\:!`\:V 
 
 \begin{figure}[t]
 \raggedright
-$\boxed{\textnormal{Coeffect-based evaluation:}~~\sigma \Downarrow_n \gamma}$
+$\boxed{\textnormal{Coeffect-based evaluation:}~~\sigma \Downarrow^\Omega_n \gamma}$
 
 \[
 \begin{array}{l}
 \omega | \Omega = \omega'\quad\text{such that}\\
 \qquad \omega'(a)(t) = \omega(a)(t)\quad(\text{when}~a\in\ident{dom}(\omega) \wedge t \le \Omega(a))
 \\[1em]
-\sigma \Downarrow_n \gamma_n \iff \sigma, \omega'_{n-1} \Downarrow \gamma_n~
+\sigma \Downarrow^\Omega_n \gamma_n \iff \sigma, \omega'_{n-1} \Downarrow \gamma_n~
   \textnormal{where}~\forall k \in 0..n\!-\!2\!:\\[0.25em]
 ~
 \qquad \omega_{k+1}(a)(1) = \gamma_{k+1}(a)\quad
   (\textnormal{where}~\sigma, \omega'_k \Downarrow \gamma_{k+1})\\[0.25em]
-\qquad \omega_{k+1}(a)(1+t) = \omega'_k(t)\\[0.25em]
+\qquad \omega_{k+1}(a)(1+t) = \omega'_k(a)(t)\\[0.25em]
 \qquad \text{and}~\omega'_{k+1} = \omega_{k+1}|\Omega
 \end{array}
 \]
@@ -1407,10 +1412,129 @@ range of past values.
 \subsection{Properties and coeffect soundness}
 \label{sec:calculus-properties}
 
-check that all items accessed at previous time step have enough past values specified
+We now use the formalization discussed in the preceding sections to show two key properties of
+\Timeline. Both are standard properties of programming language calculi that are equally
+applicable and important for spreadsheets.
 
-sheet evaluation is deterministic
-(even in the generalized thing)
+First, the evaluation is deterministic, i.e., if a spreadsheet can be evaluated in two ways,
+the results are the same. Second, the coeffect-based optimization is sound, i.e., if a spreadsheet
+can be evaluated, and it can be checked with respect to $\Omega$, then it can also be evaluated
+using the coeffect-based evaluation that restricts the stored value history as specified by $\Omega$.
+
+\subsubsection*{Determinacy}
+There are three sources of non-determinism in \Timeline sheet evaluation. First, the
+sheet evaluation does not define the order in which the cells evaluate. Second, \Timeline
+includes non-deterministic functions such as \tml{RANDOM}. We omit those in the formal model.
+Third, the decision which cells to treat as stateful can also affect the evaluation. We focus
+on this last issue first.
+
+The generalised coeffect-based semantics models an optimization where only a limited number of
+past values is stored for stateful cells. As illustrated in \autoref{sec:features-coeffects},
+the evaluation can proceed differently depending on which cells are treated as stateful.
+The evaluation can yield different results if the sheet contains inconsistent default values.
+For example, consider the sheet:
+
+\begin{lstlisting}[style=timelineStyle]
+    /* First default */     /* Second default */     /* Tricky cell */
+    B1 = 1                  A1 = 0 => B1             C1 = A1[-10]
+\end{lstlisting}
+
+\noindent
+If we make \tml{A1} stateful, the value of \tml{C1} will be $0$ in the first 10 steps,
+but if we make \tml{A1} stateless, its value will be computed as $1$. However,
+if a sheet has consistent default values, and we pick two different sets of stateful cells,
+the results (if defined) will be the same. More formally:
+
+\begin{definition}[Consistent default values]
+A sheet $\sigma$ has \emph{consistent default values} when for any context $\Omega$
+that determines which cells are stateful, and for all cells $a$, if
+$\sigma, \omega_0|\Omega \vdash a[-t]!`V$
+and also $\omega_0(a)(t) = V'$ (where $\omega_0$ is defined as shown in \autoref{fig:semantics-sheet}) then $V = V'$.
+\end{definition}
+
+In other words, if we initialize the history and pick any restriction that allows the value of any
+given cell to be evaluated, the evaluated value is the same as the one obtained from the explicitly
+specified default values. The above example violates this condition. Before considering the main
+determinacy theorem, we consider the evaluation order of cells:
+
+\begin{lemma}[Sheet evaluation determinacy]
+For any $\sigma, \omega$, if $\sigma, \omega \Downarrow \gamma$
+and $\sigma, \omega \Downarrow \gamma'$ then $\gamma = \gamma'$.
+\end{lemma}
+\begin{proof}
+Our definition follows Williams et al. \cite{williams-2020-spilled}, who show that it is
+deterministic. Briefly, the $\Downarrow$ relation is not defined for sheets with cycles.
+If the sheet is acyclic, the evaluation of each individual cell is deterministic and so the
+overall sheet evaluation is also deterministic.
+\end{proof}
+
+We now turn attention to the determinacy of the coeffect-based optimization. We want to show
+that the evaluation is deterministic for any two contexts $\Omega, \Omega'$. Note that here,
+they only determine which cells are stateful. (Soundness ensures that a sufficient number of
+values are stored, but here we assume that evaluation is defined.) The key difficulty is that,
+in the past value access rule $\sigma,\omega \vdash a[-t]\:!`\:V$, the different contexts
+$\Omega$ and $\Omega'$ may treat the cell at $a$ differently, making it stateless in one case
+and stateful in the other case.
+
+\begin{theorem}[Coeffect-based evaluation determinacy]
+For a sheet $\sigma$ with consistent default values, it is the case that
+for any $\Omega, \Omega', n$, if $\sigma \Downarrow^\Omega_n \gamma$ and
+$\sigma \Downarrow^{\Omega'}_n \gamma'$ then $\gamma = \gamma'$.
+\end{theorem}
+\begin{proof}
+
+The proof proceeds by induction on $n$. For $n=1$, the values are obtained or computed from
+$\omega_0$. The result is deterministic because the sheet is required to have
+\emph{consistent default values}.
+
+In the induction step $n=k+1$, the interesting case is when a cell $a$ is stateless in $\Omega$
+($\ast$) but stateful in $\Omega'$ ($\dagger$).
+The value of $a$ is obtained using $\omega_k(a)(t) = V$ ($\ast$) or using
+$\sigma, \ident{shift}_t(\omega_k) \vdash \sigma(a) \Downarrow V'$ ($\dagger$).
+In the former case ($\ast$), the value stored in the timeline was computed before $t-1$ steps using:
+%
+\[
+\omega_k(a)(t) = \omega_{k-1}(a)(t-1) = \ldots = \omega_{k-t+1}(a)(1) = \gamma_{k-t+1}(a)
+\]
+%
+The grid $\gamma_{k-t+1}$ was obtained using $\sigma, \omega'_{k-t} \Downarrow \gamma_{k-t+1}$
+where $\sigma, \omega'_{k-t} \vdash \sigma(a) \Downarrow V$ and $\gamma_{k-t+1}(a)=V$.
+The history $\ident{shift}_t(\omega_k)$ ($\dagger$) coincides with
+$\omega'_{k-t}$ for all $a$ and $t$ on which they are both defined and so the two ways of
+evaluating the cell will yield the same results.
+\end{proof}
+
+
+\subsubsection*{Soundness}
+The second important property that we want to show is that the coeffect-based optimization is
+sound. As defined in \autoref{fig:semantics-coeffsheet}, the key aspect of the optimization is
+that the history $\omega$ is restricted according to a context $\Omega$ that defines which cells
+are stateful and how many past values are needed. If a sheet can be checked with respect to
+$\Omega$ and it has default values for all the stateful cells, the evaluation will not get
+stuck due to an access to an undefined past value. The equivalent of a well-typed sheet is defined
+as follows:
+
+\begin{definition}[Well-timed and well-initialized sheet] A sheet $\sigma$ is:
+\begin{itemize}
+  \item[--] \emph{well-timed} with respect to $\Omega$ if
+$\forall a\in\ident{dom}(\sigma).\;\Omega\coeff 0\vdash_\sigma \sigma(a)~\ident{ok}$.
+  \item[--] \emph{well-initialized} with respect to $\Omega$ if
+$\forall a\in\ident{dom}(\Omega).\;\exists E,F.\;\sigma(a)=E\Rightarrow F$.
+\end{itemize}
+
+We write $\sigma:\Omega$ if a sheet $\sigma$ is well-timed and well-initialized with respect to $\Omega$.
+\end{definition}
+
+\begin{theorem}[Soundness]
+For any $\sigma, \Omega$ such that $\sigma\!:\!\Omega$, for any $n$, $\exists \gamma.\;\sigma\Downarrow^\Omega_n \gamma$.
+\end{theorem}
+%\begin{proof}
+%By induction over $n$. For $n=1$, $\gamma_1$ is $\sigma, \omega_0|\Omega \Downarrow \gamma_1$
+%\end{proof}
+
+
+
+
 
 \newpage
 
