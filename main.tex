@@ -81,7 +81,7 @@
 \lstdefinelanguage{timeline}{
     morekeywords={IF, AND, STEP, COS, RADIANS, MAX, SIN, POWER, SUM, POINT, GRAPH, STROKECOLOR,
       LINE, OVERLAY, AXES, KEYPRESS, IMAGE, FALSE, NOT, MIN,FILLCOLOR, COLUMN, APPEND, COORD,
-      ASPECTRATIO, INDEX, INDIRECT, OFFSET, RANDOM},
+      ASPECTRATIO, INDEX, INDIRECT, OFFSET, RANDOM, SQRT, RAND, DIST, NUMBER, DATASET, AVERAGE},
     morekeywords=[2]{B5,C5,D5,E5,F5,B3,C3,D3,E3,F3,G3,H3,I3},
     sensitive=true,
     morestring=[b]",
@@ -98,13 +98,32 @@
     keywordstyle=[2]\color{Bittersweet},
     stringstyle=\color{Sepia},
     literate=
+      {\$M16}{{{\color{Bittersweet}{\$M16}}}}3
+      {\$N16}{{{\color{Bittersweet}{\$N16}}}}3
+      {\$O16}{{{\color{Bittersweet}{\$O16}}}}3
+      {\$G16}{{{\color{Bittersweet}{\$G16}}}}3
+      {\$H16}{{{\color{Bittersweet}{\$H16}}}}3
+      {\$I16}{{{\color{Bittersweet}{\$I16}}}}3
+      {\$B\$6}{{{\color{Bittersweet}{\$B\$6}}}}4
+      {\$D\$6}{{{\color{Bittersweet}{\$D\$6}}}}4
+      {\$G\$6}{{{\color{Bittersweet}{\$G\$6}}}}4
+      {\$C\$6}{{{\color{Bittersweet}{\$C\$6}}}}4
+      {\$G\$10}{{{\color{Bittersweet}{\$G\$10}}}}5
       {\$B\$17}{{{\color{Bittersweet}{\$B\$17}}}}5
       {\$C\$17}{{{\color{Bittersweet}{\$C\$17}}}}5
       {\$O\$6}{{{\color{Bittersweet}{\$O\$6}}}}4
       {\$P\$6}{{{\color{Bittersweet}{\$P\$6}}}}4
       {\$Q\$6}{{{\color{Bittersweet}{\$Q\$6}}}}4
+      {\$C\$10}{{{\color{Bittersweet}{\$C\$10}}}}5
+      {\$D\$10}{{{\color{Bittersweet}{\$D\$10}}}}5
+      {\$C11}{{{\color{Bittersweet}{\$C11}}}}4
+      {\$D11}{{{\color{Bittersweet}{\$D11}}}}4
       {A1}{{{\color{Bittersweet}{A1}}}}2
       {B1}{{{\color{Bittersweet}{B1}}}}2
+      {B5}{{{\color{Bittersweet}{B5}}}}2
+      {B9}{{{\color{Bittersweet}{B9}}}}2
+      {C9}{{{\color{Bittersweet}{C9}}}}2
+      {D9}{{{\color{Bittersweet}{D9}}}}2
       {C1}{{{\color{Bittersweet}{C1}}}}2
       {C6}{{{\color{Bittersweet}{C6}}}}2
       {C8}{{{\color{Bittersweet}{C8}}}}2
@@ -116,16 +135,34 @@
       {B10}{{{\color{Bittersweet}{B10}}}}3
       {C10}{{{\color{Bittersweet}{C10}}}}3
       {D10}{{{\color{Bittersweet}{D10}}}}3
+      {E10}{{{\color{Bittersweet}{E10}}}}3
+      {F10}{{{\color{Bittersweet}{F10}}}}3
+      {G10}{{{\color{Bittersweet}{G10}}}}3
+      {H10}{{{\color{Bittersweet}{H10}}}}3
+      {I10}{{{\color{Bittersweet}{I10}}}}3
+      {J10}{{{\color{Bittersweet}{J10}}}}3
+      {K10}{{{\color{Bittersweet}{K10}}}}3
+      {L10}{{{\color{Bittersweet}{L10}}}}3
+      {U10}{{{\color{Bittersweet}{U10}}}}3
+      {V10}{{{\color{Bittersweet}{V10}}}}3
+      {O10}{{{\color{Bittersweet}{O10}}}}3
       {D14}{{{\color{Bittersweet}{D14}}}}3
+      {P16}{{{\color{Bittersweet}{P16}}}}3
+      {O16}{{{\color{Bittersweet}{O16}}}}3
+      {C16}{{{\color{Bittersweet}{C16}}}}3
+      {C35}{{{\color{Bittersweet}{C35}}}}3
+      {C23}{{{\color{Bittersweet}{C23}}}}3
       {D17}{{{\color{Bittersweet}{D17}}}}3
       {D21}{{{\color{Bittersweet}{D21}}}}3
       {F19}{{{\color{Bittersweet}{F19}}}}3
       {E21}{{{\color{Bittersweet}{E21}}}}3
       {G19}{{{\color{Bittersweet}{G19}}}}3
+      {D16}{{{\color{Bittersweet}{D16}}}}3
       {0}{{{\color{OliveGreen}{0}}}}1
       {-1}{{{\color{OliveGreen}{-1}}}}2
       {1}{{{\color{OliveGreen}{1}}}}1
       {2}{{{\color{OliveGreen}{2}}}}1
+      {5}{{{\color{OliveGreen}{5}}}}1
       {cursor}{{{$\bullet$}}}1
       {~}{{\hspace{0.1em}}}1
 }
@@ -852,7 +889,7 @@ editing \cite{litt-2022-peritext}. In our case, the desired behavior follows thr
   at the end \tml{=MIN(10,A1)cursor}.
 \end{itemize}
 
-To implement the desired behavior, we adopt the notion of holes \cite{mcbride-2000-holes}
+The desired behavior can be implemented using the notion of holes \cite{mcbride-2000-holes}
 as used in the Hazel programming environment \cite{omar-2017-hazelnut,omar-2019-typedholes}.
 Hazel introduced holes to support working with incomplete programs. A missing or unfinished
 sub-expression in a program is represented by a hole $\hhole{}$, which allows
@@ -860,7 +897,7 @@ the rest of the program to be type checked and even run. Non-empty holes, writte
 $\hhole{e}$, represent sub-expressions of inconsistent type, i.e.,
 a type error that needs to be resolved later.
 
-In the \Timeline formula editor, we use a (possibly non-empty) hole to represent the location
+A formula editor based on holes would use a (possibly non-empty) hole to represent the location
 where a cell reference can be inserted using a click. We adopt the Hazel notation writing
 $\hhole{}$ for holes and we write $\errrec{)}$ for tokens assumed during error recovery.
 The individual steps of the interaction shown in \autoref{fig:holes} are listed in
@@ -1426,7 +1463,7 @@ applicable and important for spreadsheets.
 
 First, the evaluation is deterministic, i.e., if a spreadsheet can be evaluated in two ways,
 the results are the same. Second, the coeffect-based optimization is sound, i.e., if a spreadsheet
-can be evaluated, and it can be checked with respect to $\Omega$, then it can also be evaluated
+can be checked with respect to $\Omega$, then it can also be evaluated
 using the coeffect-based evaluation that restricts the stored value history as specified by $\Omega$.
 
 \subsubsection*{Determinacy}
@@ -1596,42 +1633,195 @@ for each $k$, establishing $\sigma \Downarrow^\Omega_n \gamma_n$.
 \section{Case studies}
 \label{sec:case-studies}
 
+To showcase the expressive power of \Timeline, we present four case studies from four different
+application domains. In addition to the interactive game example discussed in the opening,
+the examples include an agent-based model of flocking adapted from Netlogo \cite{wilensky-1998-flocking},
+physics simulation of the solar system, and backtesting simulation of a moving average
+crossover trading strategy \cite{zakamulin-2025-moving}. For each case study, we give an overview
+of the \Timeline spreadsheet structure, provide a reference to a full version available online,
+and briefly assess the solution.
 
-\subsection{Formative interviews}
-
-\subsection{Agent-bsaed}
-\label{sec:case-abm}
-
-\begin{figure}
-\includegraphics[width=\textwidth]{fig/case-boids}
-\caption{xxx}
-\label{fig:case-boids}
-\vspace{-0.25em}
-\end{figure}
-
-\subsection{Physics}
+\subsection{Planetary orbit simulation}
 \label{sec:case-physics}
+
+The planetary orbit simulation (\autoref{fig:case-planets})\footnote{Available at:
+\url{https://timelinesheets.com/spreadsheet/1fdc6e97-b1fd-4f49-9623-d885dd541199} (the web site
+does not reveal author identity). To run the simulation, click \emph{View} $\rightarrow$ \emph{Graph}
+and then click the \emph{Play} or \emph{Next step} button.} models the orbit of planets in the
+solar system. It uses real astronomical units and measurements such as planet
+masses, distances from the Sun and orbital velocities, and models the planet movement by computing
+the gravitational force that the Sun applies to the planets. For simplicity, we only include the
+first four planets.
 
 \begin{figure}
 \includegraphics[width=\textwidth]{fig/case-planets}
-\caption{xxx}
-\label{fig:case-boids}
+\caption{Solar system simulation. The displayed table stores attributes of individual planets.}
+\label{fig:case-planets}
 \vspace{-0.25em}
 \end{figure}
 
-\subsection{Finance}
-\label{sec:case-finance}
+\subsubsection*{Spreadsheet structure}
+The spreadsheet consists of four tables. The first one contains constants, such as the astronomical
+unit and the gravitational constant. The second and third tables contain information about the
+Sun and the planets and the fourth table composes the final visualization by overlaying black
+background and visual representation of the Sun and the planets.
 
-(=signal processing)
+The table with planets (shown in \autoref{fig:case-planets}) records constant information about
+each planet (name, radius, mass, color) and information related to the planet's movement.
+This is the current distance from the sun, force applied by the sun, velocity and position,
+kept separately for X and Y coordinates. For the planet Earth, the distance from the Sun and the
+applied force are computed as follows (cells \tml{\$M16} and \tml{\$N16} store the X and Y
+distances from the Sun, \tml{\$H16} and \tml{\$I16} store the X and Y velocity,
+\tml{\$C\$6} is the gravitational constant, \tml{\$G16} is the Earth's mass,
+and \tml{\$G\$10} is the Sun's mass; the initial X position is -1 AU while the initial Y
+position is 0):
+
+\begin{lstlisting}[style=timelineStyle]
+/* Distance */   O16 = SQRT($M16 * $M16 + $N16 * $N16)
+/* Force */      P16 = $C$6 * $G16 * $G$10 / POWER($O16, 2)
+\end{lstlisting}
+\vspace{-0.25em}
+\begin{lstlisting}[style=timelineStyle]
+/* X Position */ C16 = -1 * $B$6 => C16[-1] + $H16[-1] * $G$6
+/* Y Position */ D16 = 0 => D16[-1] + $I16[-1] * $G$6
+\end{lstlisting}
+
+\subsubsection*{Case study assessment}
+Technically, the case study is similar to the cannonball simulation (\autoref{sec:walkthrough}).
+It uses absolute references (dollar sign) to enable the drag down operation for adding further
+planets; and it uses the \tml{[-1]} notation to access one past value when updating
+the position and velocity. Because of the large number of attributes needed for each planet,
+constructing the same model in two-dimensional spreadsheet (using rows for time-steps) would be
+difficult. In \Timeline the model fits a single simple table. When constructing the model as well
+as the visualization, the directness of the spreadsheet paradigm makes it possible to debug
+the formulas as they are being written.
+
+\subsection{Agent-based flocking simulation}
+\label{sec:case-abm}
+Our second case study\footnote{Available at: \url{https://timelinesheets.com/spreadsheet/c9b53ee9-0f1b-4d5d-a73e-19f0d201e204}
+(same as above)} implements the Boids flocking algorithm \cite{reynolds-1998-boids}
+and is inspired by a model developed in Netlogo \cite{wilensky-1998-flocking}. It is an example
+of a broad class of agent-based models that are widely used in biology, epidemiology,
+behavioral economics and social sciences.
+
+The simulation models the flocking behavior of birds that emerges from the interaction between
+individual birds. The birds follow two simple rules: (i) each bird steers away from other birds
+in its close proximity, (ii) each bird flies towards the average position of flockmates in its
+visual range, and (iii) each bird tries to match the vector of birds in its visual range.
+
+\subsubsection*{Spreadsheet structure}
+The model consists of a table with constants, a table with attributes of the birds and 9
+square tables (no. of birds $\times$ no. of birds) that model interactions between birds.
+\autoref{fig:case-boids} shows the main table and an interaction table calculating the distance
+between each pair of birds.
+
+The flocking logic is defined in the main table in terms of three properties. Separation
+is computed by multiplying the total number of birds in near proximity by a constant \emph{avoid
+factor}. Cohesion is calculated as the average location of birds within a visual range, multiplied
+by the \emph{centering factor}. Finally, alignment is computed as the average X and Y velocity
+of birds in the visual range, multiplied by the \emph{matching factor}. The individual
+components (\tml{G10}, \tml{I10}, \tml{K10} for X and \tml{H10}, \tml{J10}, \tml{L10} for Y)
+are then added to compute the new speed:
+
+\begin{lstlisting}[style=timelineStyle]
+/* Delta X */ E10 = RAND()*10-5 => E10[-1] + G10[-1] + I10[-1] + K10[-1] + U10[-1]
+/* Delta Y */ F10 = RAND()*10-5 => F10[-1] + H10[-1] + J10[-1] + L10[-1] + V10[-1]
+/* Speed */   O10 = SQRT(E10 * E10 + F10 * F10)
+\end{lstlisting}
+
+The interaction between birds is computed in square tables where a cell at relative offset
+$i$ and $j$ computes the interaction between a bird at index $i$ and a bird at index $j$.
+For example, in the \emph{Distances} table, cell \tml{C23} calculates the distance between the
+first bird (position \tml{\$C\$10}, \tml{\$D\$10}) and the second bird (position
+\tml{\$C11}, \tml{\$D11}) the cell \tml{C35} in the \emph{Visual Range} table then checks if the
+birds are within the visual range of each other (\tml{DIST} is a user-defined helper function):
+
+\begin{lstlisting}[style=timelineStyle]
+/* Distances */    C23 = DIST($C11,$D11,$C$10,$D$10)
+/* Visual Range */ C35 = IF(AND(C23 != 0, C23 < $D$6), 1, 0)
+\end{lstlisting}
+
 
 \begin{figure}
-\includegraphics[width=\textwidth]{fig/case-finance}
-\caption{xxx}
+\includegraphics[width=\textwidth]{fig/case-boids}
+\caption{Agent-based flocking simulation. The main birds table and an interaction table.}
 \label{fig:case-boids}
 \vspace{-0.25em}
 \end{figure}
 
+\subsubsection*{Case study assessment}
+The implementation still relies only on simple formulas and the \tml{[-1]} construct to access
+previous value of a cell, but the sheet is larger. In particular, the construction of
+interaction tables requires some effort (we can use drag down to update formulas in one direction,
+but not in both, hence \tml{\$C11} has one flexible dimension, but \tml{\$C\$10} not in the
+\emph{Distances} table). In our experience, interaction tables, as used in this case study,
+are a common design pattern for agent-based models implemented in \Timeline.
 
+\subsection{Moving average crossover}
+\label{sec:case-finance}
+
+Moving average crossover is a trading strategy that relies on the interaction of a short-term
+and a long-term moving average \cite{zakamulin-2025-moving}. When the short-term average crosses
+over the long-term average, it suggests a buying opportunity, while the other direction suggests
+a possible exit point. Our third case study implements a backtesting algorithm that replays
+historical price data and calculates the earns or losses of the strategy over the
+history.
+
+\subsubsection*{Spreadsheet structure}
+The spreadsheet (\autoref{fig:case-finance})\footnote{Available at:
+\url{https://timelinesheets.com/spreadsheet/e653e57b-9ba9-463d-9f2b-44ddd5a426d3} (same as above)}
+loads data from an uploaded CSV file using the \tml{DATASET} function. This is a time-varying
+function that returns a value from a row determined by the current time step. In our case,
+it replays the history of the price. The computation of the fast and slow moving average looks
+at the last 10 and 20 values using a range interval. To detect a crossover, we compare the
+relationship in the current and the previous step:
+
+\begin{lstlisting}[style=timelineStyle]
+/* Price */   B5 = NUMBER(DATASET("btc", "price"))
+/* MA Fast */ B9 = AVERAGE(B5[:-10])
+/* MA Slow */ C9 = AVERAGE(B5[:-20])
+/* Signal */  D9 = IF(AND(B9>C9,B9[-1]<=C9[-1]),1,IF(AND(B9<C9,B9[-1]>=C9[-1]),-1,0))
+\end{lstlisting}
+
+\subsubsection*{Case study assessment}
+The implementation relies on programming patterns that are common in synchronous dataflow
+programming languages, such as the code for edge detection discussed earlier (\autoref{sec:features-dataflow}).
+The example also utilizes larger history buffer (10 values for cell \tml{B9}, 20 for \tml{C9}).
+These are specified inline and so our analysis can compute the buffer sizes statically.
+If the floating window sizes were parameters in the sheet, we would need a more powerful
+analysis in order to determine that the value of the cell is constant. The example also illustrates
+the power of composable data visualizations, creating sparklines \cite{frishberg-2011-sparklines}
+to show the price changes inline.
+
+\begin{figure}
+\vspace{-0.5em}
+\includegraphics[width=\textwidth]{fig/case-finance}
+\vspace{-1em}
+\caption{Moving average crossover. Trading strategy and live charts over a floating window.}
+\label{fig:case-finance}
+\vspace{-0.5em}
+\end{figure}
+
+\subsection{Flappy bird game clone}
+Flappy bird is a simple side-scroller game where the player aims to jump through a series of pipes
+without hitting them. The bird is dragged down by gravity and jumps up when the user hits a key.
+
+\subsubsection*{Spreadsheet structure}
+Our implementation \autoref{fig:teaser}\footnote{Available at: \url{https://timelinesheets.com/spreadsheet/1187c0bd-fe59-4efd-9541-622f35587031} (the web site
+does not reveal author identity). To run the game, click \emph{View} $\rightarrow$ \emph{Graph},
+click \emph{Play} and then press \texttt{A} to jump.}
+contains four tables that define a number of constants (images, map, pipe and bird properties).
+The main logic is implemented in two tables that track the positions of the bird and the pipes.
+The bird moves down with gravity or up when the keypress is detected using \tml{KEYPRESS("A")}.
+The pipes move to the left. A new size and position is chosen when the pipe moves out of view
+and so the table only has a fixed size of 3.
+
+\subsubsection*{Case study assessment}
+The Flappy bird game illustrates the somewhat unexpected capabilities of the \Timeline programming
+model, when extended with a simple function to detect key presses. The discrete time serves as
+the main game loop and composable visualizations can be used to construct the game scene from
+individual images (background, bird and pipe sprites). As new entries cannot be dynamically added
+to a table, the existing three pipes have to be reused.
 
 \section{Related work}
 % https://jeannin.github.io/papers/chen2022synchronous.pdf
@@ -1659,10 +1849,19 @@ gridlets
 and their semantics
 \cite{williams-2020-spilled}
 \cite{bock-2022-cost}
-\begin{acks}
-Omitted
-thanks to Mickael for pointing out the synchronous languages link!
-\end{acks}
+
+\section{Conclusions}
+what is and is not implemented
+
+more user studies
+
+\newpage
+\section*{Data availability statement}
+
+%\begin{acks}
+%Omitted
+%thanks to Mickael for pointing out the synchronous languages link!
+%\end{acks}
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{main}
