@@ -456,7 +456,7 @@ shape representing a line; \tml{OVERLAY} takes a range of chart shapes and const
 chart shape consisting of the individual shapes; \tml{AXES} attaches axes with labels to a
 given chart shape. The addition requires adding points and chart shapes as two additional
 primitive values to the core spreadsheet model. In systems that support richer data structures
-\cite{mccutchen-2016-oosheets,yoder-1994-real,clack-1997-object,burnett-2001-forms3}, a point
+\cite{mccutchen-2016-oop,yoder-1994-real,clack-1997-object,burnett-2001-forms3}, a point
 could be a user-defined object or a record.
 
 To construct the chart, the cell \tml{C10} constructs a point consisting of the current X and Y
@@ -500,7 +500,7 @@ discussing the major connections. More formal treatment
 \label{sec:features-dataflow}
 
 The notion of discrete time, as implemented in \Timeline, is based on the notion of time
-in declarative synchronous programming languages. Synchronous languages \cite{benveniste-2003-after}
+in declarative synchronous programming languages. Synchronous languages \cite{benveniste-2003-sync}
 are based on the idea that time proceeds in discrete logical ticks and components react
 concurrently to changes in each step. The approach has been successful in areas such
 as signal processing and embedded control systems.
@@ -510,7 +510,7 @@ await and emit time signals. Our approach is akin to declarative synchronous lan
 Lucid and Lustre \cite{ashcroft-1977-lucid,caspi-1987-lustre} where expressions denote streams
 of values and operators and functions operate on streams in a pointwise manner. The languages
 additionally include a number of operators for manipulating streams. Consider the following
-Lustre example adapted from \cite{benveniste-2003-after}:
+Lustre example adapted from \cite{benveniste-2003-sync}:
 
 \begin{lstlisting}[style=langStyle]
       nat = 0 -> pre(nat) + 1;
@@ -1824,48 +1824,109 @@ individual images (background, bird and pipe sprites). As new entries cannot be 
 to a table, the existing three pipes have to be reused.
 
 \section{Related work}
-% https://jeannin.github.io/papers/chen2022synchronous.pdf
+\Timeline shows that a large number of programming language research
+concepts are directly applicable to spreadsheets. Earlier discussion (\autoref{sec:features})
+covers work on coeffect systems, data visualization and typed holes. This section
+provides an overeview of the remaining main related research areas.
 
-%\subsubsection*{Extending spreadsheets}
-%
-%
-%\todo{Mention somewhere monadic/comonadic stream-based semantics}
-\cite{wadge-1995-monads,uustalu-2006-essence,krishnaswami-2011-ultra}
-\cite{elliott-2009-pushpull} denotational
-\cite{oeyen-2023-graphbased} graph based
+\vspace{-0.25em}
+\subsubsection*{Extending the spreadsheet model}
+Forms/3~\cite{burnett-2001-forms3} is a pioneering extension of spreadsheets to non-tabular
+format, that inspired later work \cite{bazant-2018-nontabular}; spreadsheets have been extended
+to support object-orientation \cite{mccutchen-2016-oop,clack-1997-object} and
+programming by demonstration \cite{gulwani-2012-examples}. An early attempt
+to use spreadsheets for interactive graphics is by Wilde et al. \cite{wilde-1990-graphics}.
+Websheets~\cite{chang-2014-web} and streaming extensions~\cite{chang-2015-streaming} integrate
+spreadsheets with live data (but without adding a third dimension). Spreadsheets served as
+an inspiration for multiple other languages \cite{yoder-1994-real,petricek-2022-gamma}.
+Cuscus is a design prototype for describing rich visualizations in a
+spreadsheet~\cite{marasoiu-2019-cuscus} and our work has also been inspired by
+sparklines~\cite{frishberg-2011-sparklines}.
 
-formal semantics of
-FRP and data-flow langauges (monads, comonads, conal, ultrametic, stuff...)
+\vspace{-0.2em}
+\subsubsection*{Abstractions and types for spreadsheets}
+Sheet-defined functions are introduced in~\cite{jones-2003-functions} with formal semantics
+developed later~\cite{sestoft-2013-sheetdef,bock-2020-sheetdef,bock-2022-cost}. Later work allows
+variable-size input~\cite{mccutchen-2020-sdfs}, while gridlets \cite{joharizadeh-2020-gridlets}
+serve as reusable sheet blocks and have been implemented using spilled arrays~\cite{williams-2020-spilled},
+which directly inspired our semantics. Multiple systems provide static type systems for
+spreadsheets~\cite{ahmad-2003-types,abraham-2006-types}, perform static analysis of formulas
+\cite{cheng-2015-static} or apply other software engineering techniques \cite{hermans-2016-spreadsheets}.
 
-static analysis
-\cite{cheng-2015-static}
-type inference
-\cite{abraham-2006-inference}
+\vspace{-0.2em}
+\subsubsection*{Dataflow and functional reactive programming}
+The \Timeline execution draws inspiration from synchronous dataflow languages such as
+Lucid, Lustre and Esterel~\cite{benveniste-2003-sync,ashcroft-1977-lucid,caspi-1987-lustre,halbwachs-1991-lustre,berry-1992-esterel}.
+Our programming model is most closely related to Lustre, whose clock calculus~\cite{caspi-1992-clocks}
+is a predecessor of our checking of past accesses. Functional reactive programming systems
+\cite{elliott-1997-fran,wan-2000-frp,courtney-2003-yampa} do not use discrete time, but
+event-based systems are more similar to our approach \cite{wan-2002-efrp}.
+Space leak problems have been a challenge for the implementation of FRP
+systems~\cite{krishnaswami-2013-leaks,bahr-2022-frp}, not shared by our system.
 
-sheet defined functions
-\cite{jones-2003-functions}
-\cite{sestoft-2013-sheetdef}
-and their semantics
-\cite{bock-2020-sheetdef}
-elastic
-\cite{mccutchen-2020-sdfs}
+\vspace{-0.2em}
+\subsubsection*{Semantics of reactive and dataflow programs}
+Our semantics has been inspired by operational approaches \cite{williams-2020-spilled,bock-2020-sheetdef,bock-2022-cost}.
+More dynamic reactive systems often use graph-based evaluation \cite{satyanarayan-2016-vega,oeyen-2023-graphbased}.
+The semantics of dataflow languages has been given in both monadic~\cite{wadge-1995-monads}
+and comonadic style~\cite{uustalu-2006-essence}.
+The semantics of functional reactive programming languages has been
+defined denotationally \cite{elliott-2009-pushpull} using a range of categorical
+models \cite{jeltsch-2014-categorical,krishnaswami-2011-ultra}, but recently also in an
+operational style \cite{ischard-2025-frp}.
 
-gridlets
-\cite{joharizadeh-2020-gridlets}
-and their semantics
-\cite{williams-2020-spilled}
-\cite{bock-2022-cost}
-
+\vspace{-0.3em}
 \section{Conclusions}
 Spreadsheets are the most widely used programming systems in the world, but their expressive
 power is limited. Attempts to extend spreadsheets face a challenge---how to extend the power
 of the programming model, without losing their liveness, directness and usability?
+\Timeline shows that adding a time dimension to spreadsheets keeps their desirable properties,
+but makes them more powerful. Spreadsheets with time can be used to implement agent-based
+models, physics simulations, financial analyses and even interactive games.
 
-more user studies
+The key observation in this paper is that the design and implementation of a spreadsheet system
+with time can draw on rich body of programming languages research. Our execution model takes
+inspiration from synchronous dataflow languages and functional reactive programming, we
+guarantee memory-bound execution using coeffects, the formula editor can leverage theory of
+typed holes and we can support rich charts by using ideas rooted in grammar of graphics.
+There is more to spreadsheets than meets the (programming language researcher's) eye!
 
 \newpage
 \section*{Data availability statement}
-what is and is not implemented
+An implementation of \Timeline will be submitted as an artifact, consisting of:
+\begin{itemize}[itemsep=0mm,topsep=1mm,leftmargin=0.5cm]
+  \item[--] Stand-alone package that can be used to run \Timeline locally (Docker image)
+  \item[--] Easily accessible implementation of the four case studies discussed in the paper
+    (Flappy bird, Moving average crossover, Flocking simulation, Solar system simulation)
+    and the introductory example (Cannonball simulation).
+\end{itemize}
+
+\noindent
+The artifact differs from the fully general theoretical account provided in the paper in that:
+\begin{itemize}[itemsep=0mm,topsep=1mm,leftmargin=0.5cm]
+  \item[--] The implementation of cell evaluation is based on topological ordering of dependencies
+    and update propagation. This aspect is left unspecified in this paper.
+  \item[--] All the examples and case studies work exactly as described in the paper. Some may use
+    advanced features for readability (such as named ranges and user-defined functions).
+  \item[--] The system implements only the simple mechanism for checking the required number of
+    past values (without the coeffect-based optimization). Coeffect-based model is theoretically
+    interesting, but not necessary for efficiency in practice.
+  \item[--] The execution using bounded memory can be enabled or disabled (it saves memory,
+    but makes it difficult to go to the previous step, which is helpful for debugging)
+  \item[--] Formula editing based on holes is not implemented. Currently, \Timeline inserts
+    a cell reference on click when \texttt{Ctrl} is pressed. Implementing the theory described
+    in the paper is future work.
+\end{itemize}
+
+
+\section*{Generative AI tools use}
+The system implementation and the paper have been solely written by the authors.
+Generative AI tools (Claude Code, \url{https://claude.ai}) has been used while writing and revising
+the paper: (i) as a critic of the paper text (prompted to find flaws, omissions and inconsistencies),
+(ii) to generate ideas on possible ways of structuring and framing some of the sections in the paper
+(prompted to suggest possible options), and (iii) for langauge corrections and spellchecking (prompted to
+list issues). In all cases, the authors wrote the actual text as it appears in the paper.
+
 
 %\begin{acks}
 %Omitted

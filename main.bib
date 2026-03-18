@@ -32,20 +32,6 @@ location = {Honolulu, HI, USA},
 series = {CHI EA '20}
 }
 
-@inproceedings{abraham-2006-inference,
-author = {Abraham, Robin and Erwig, Martin},
-title = {Type inference for spreadsheets},
-year = {2006},
-isbn = {1595933883},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-doi = {10.1145/1140335.1140346},
-booktitle = {Proceedings of the 8th ACM SIGPLAN International Conference on Principles and Practice of Declarative Programming},
-pages = {73–84},
-numpages = {12},
-location = {Venice, Italy},
-series = {PPDP '06}
-}
 @article{mccutchen-2020-sdfs,
   title={Elastic sheet-defined functions: Generalising spreadsheet functions to variable-size input arrays},
   volume={30},
@@ -425,6 +411,16 @@ isbn="978-3-030-24781-2"
   year={1997}
 }
 
+@INPROCEEDINGS{petricek-2022-gamma,
+  author={Petricek, Tomas},
+  booktitle={2022 IEEE Symposium on Visual Languages and Human-Centric Computing (VL/HCC)},
+  title={The Gamma: Programmatic Data Exploration for Non-programmers},
+  year={2022},
+  volume={},
+  number={},
+  pages={1-7},
+  keywords={Visualization;Codes;Soft sensors;Writing;Journalism;Encoding;Iterative methods;data exploration;data journalism},
+  doi={10.1109/VL/HCC53370.2022.9833134}}
 
 @INPROCEEDINGS{yoder-1994-real,
   author={Yoder, A.G. and Cohn, D.L.},
@@ -437,23 +433,6 @@ isbn="978-3-030-24781-2"
   keywords={Programming profession;Computer languages;Distributed computing;Packaging;Concurrent computing;Content addressable storage;Inspection;Modems;Decision making;Instruments},
   doi={10.1109/ICCL.1994.288396}}
 
-  @inproceedings{mccutchen-2016-oosheets,
-  author = {McCutchen, Matt and Itzhaky, Shachar and Jackson, Daniel},
-  title = {Object spreadsheets: a new computational model for end-user development of data-centric web applications},
-  year = {2016},
-  isbn = {9781450340762},
-  publisher = {Association for Computing Machinery},
-  address = {New York, NY, USA},
-  url = {https://doi.org/10.1145/2986012.2986018},
-  doi = {10.1145/2986012.2986018},
-  abstract = {Spreadsheets offer many advantages as the computational and data-storage engine for applications that are authored by end users. Paradoxically, however, their main failing in this regard is their computational model. Despite being used in almost all cases to represent data that is essentially relational (with some hierarchical structuring), the spreadsheet model treats the two-dimensional grid as largely unstructured, with formulas linking cells in an ad hoc way.This paper reports on a quest to rethink the spreadsheet model. The model we propose supports not only conventional flat tables, but also nested variable-size lists and object references. It includes a formula language suited to the data model and procedures to specify updates.The model has been implemented in a tool called Object Spreadsheets, which is intended for the development of data-centric web applications. We describe several example applications we built using the tool to demonstrate its applicability.},
-  booktitle = {Proceedings of the 2016 ACM International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software},
-  pages = {112–127},
-  numpages = {16},
-  keywords = {End-user development},
-  location = {Amsterdam, Netherlands},
-  series = {Onward! 2016}
-  }
 
 @article{petricek-2021-compost,
   title={Composable data visualizations},
@@ -587,15 +566,6 @@ numpages = {32},
   publisher = {ACM}
 }
 
-@ARTICLE{benveniste-2003-after,
-  author={Benveniste, A. and Caspi, P. and Edwards, S.A. and Halbwachs, N. and Le Guernic, P. and de Simone, R.},
-  journal={Proceedings of the IEEE},
-  title={The synchronous languages 12 years later},
-  year={2003},
-  volume={91},
-  number={1},
-  pages={64-83},
-  doi={10.1109/JPROC.2002.805826}}
 
 @article{berry-1992-esterel,
   author  = {G{\'e}rard Berry and Georges Gonthier},
@@ -660,6 +630,17 @@ abstract="Functional reactive programming",
 isbn="978-3-540-44833-4",
 doi="10.1007/978-3-540-44833-4_6",
 }
+
+@ARTICLE{satyanarayan-2016-vega,
+  author={Satyanarayan, Arvind and Russell, Ryan and Hoffswell, Jane and Heer, Jeffrey},
+  journal={IEEE Transactions on Visualization and Computer Graphics},
+  title={Reactive Vega: A Streaming Dataflow Architecture for Declarative Interactive Visualization},
+  year={2016},
+  volume={22},
+  number={1},
+  pages={659-668},
+  doi={10.1109/TVCG.2015.2467091}}
+
 
 @article{bahr-2022-frp,
   title={Modal {FRP} for all: Functional reactive programming without space leaks in {Haskell}},
@@ -775,40 +756,7 @@ pages="69--83",
 isbn="978-3-540-33096-7"
 }
 
-@inproceedings{10.1145/37401.37406,
-author = {Reynolds, Craig W.},
-title = {Flocks, herds and schools: A distributed behavioral model},
-year = {1987},
-isbn = {0897912276},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi.org/10.1145/37401.37406},
-doi = {10.1145/37401.37406},
-abstract = {The aggregate motion of a flock of birds, a herd of land animals, or a school of fish is a beautiful and familiar part of the natural world. But this type of complex motion is rarely seen in computer animation. This paper explores an approach based on simulation as an alternative to scripting the paths of each bird individually. The simulated flock is an elaboration of a particle systems, with the simulated birds being the particles. The aggregate motion of the simulated flock is created by a distributed behavioral model much like that at work in a natural flock; the birds choose their own course. Each simulated bird is implemented as an independent actor that navigates according to its local perception of the dynamic environment, the laws of simulated physics that rule its motion, and a set of behaviors programmed into it by the "animator." The aggregate motion of the simulated flock is the result of the dense interaction of the relatively simple behaviors of the individual simulated birds.},
-booktitle = {Proceedings of the 14th Annual Conference on Computer Graphics and Interactive Techniques},
-pages = {25–34},
-numpages = {10},
-series = {SIGGRAPH '87}
-}
 
-@article{10.1145/37402.37406,
-author = {Reynolds, Craig W.},
-title = {Flocks, herds and schools: A distributed behavioral model},
-year = {1987},
-issue_date = {July 1987},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-volume = {21},
-number = {4},
-issn = {0097-8930},
-url = {https://doi.org/10.1145/37402.37406},
-doi = {10.1145/37402.37406},
-abstract = {The aggregate motion of a flock of birds, a herd of land animals, or a school of fish is a beautiful and familiar part of the natural world. But this type of complex motion is rarely seen in computer animation. This paper explores an approach based on simulation as an alternative to scripting the paths of each bird individually. The simulated flock is an elaboration of a particle systems, with the simulated birds being the particles. The aggregate motion of the simulated flock is created by a distributed behavioral model much like that at work in a natural flock; the birds choose their own course. Each simulated bird is implemented as an independent actor that navigates according to its local perception of the dynamic environment, the laws of simulated physics that rule its motion, and a set of behaviors programmed into it by the "animator." The aggregate motion of the simulated flock is the result of the dense interaction of the relatively simple behaviors of the individual simulated birds.},
-journal = {SIGGRAPH Comput. Graph.},
-month = aug,
-pages = {25–34},
-numpages = {10}
-}
 
 @inbook{reynolds-1998-boids,
 author = {Reynolds, Craig W.},
@@ -903,4 +851,56 @@ publisher="Springer Berlin Heidelberg",
 address="Berlin, Heidelberg",
 pages="135--167",
 isbn="978-3-540-46845-5"
+}
+
+@inproceedings{wilde-1990-graphics,
+author = {Wilde, Nicholas and Lewis, Clayton},
+title = {Spreadsheet-based interactive graphics: from prototype to tool},
+year = {1990},
+isbn = {0201509326},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/97243.97268},
+doi = {10.1145/97243.97268},
+booktitle = {Proceedings of the SIGCHI Conference on Human Factors in Computing Systems},
+pages = {153–160},
+numpages = {8},
+location = {Seattle, Washington, USA},
+series = {CHI '90}
+}
+  
+@inproceedings{ischard-2025-frp,
+author = {Ischard, Jordan and Dabrowski, Fr\'{e}d\'{e}ric and Chouquet, Jules and Loulergue, Fr\'{e}d\'{e}ric},
+title = {A Mechanized Formalization of an FRP Language with Effects},
+year = {2025},
+isbn = {9798400706295},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3672608.3707907},
+doi = {10.1145/3672608.3707907},
+abstract = {Functional Reactive Programming (FRP) is a functional programming paradigm designed for systems interacting with their environment. The Yampa library, a Haskell implementation, allows users to construct signal functions that synchronously process input streams to produce output streams. While this library facilitates concise and robust coding, managing I/O is cumbersome. To address this issue, the Wormholes library extends Yampa with constructs to bind I/O to resource names, accessible in an imperative style. Few FRP languages are formalized, and Wormholes added challenging features. This article presents a mechanized formalization of a slightly modified version of Wormholes, improving the result and correcting some issues.},
+booktitle = {Proceedings of the 40th ACM/SIGAPP Symposium on Applied Computing},
+pages = {1431–1439},
+numpages = {9},
+keywords = {functional programming, reactive programming, effects, interactive theorem proving},
+location = {Catania International Airport, Catania, Italy},
+series = {SAC '25}
+}
+
+@inproceedings{jeltsch-2014-categorical,
+author = {Jeltsch, Wolfgang},
+title = {An abstract categorical semantics for functional reactive programming with processes},
+year = {2014},
+isbn = {9781450325677},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/2541568.2541573},
+doi = {10.1145/2541568.2541573},
+abstract = {Linear-time temporal logic and functional reactive programming (FRP) are related via a Curry-Howard correspondence. Thereby proofs of "always," "eventually," and "until" propositions correspond to behaviors, events, and processes, respectively. Processes in the FRP sense combine continuous and discrete aspects and generalize behaviors and events. In this paper, we develop a class of axiomatically defined categorical models of FRP with processes. We call these models abstract process categories (APCs). We relate APCs to other categorical models of FRP, namely temporal categories and concrete process categories.},
+booktitle = {Proceedings of the ACM SIGPLAN 2014 Workshop on Programming Languages Meets Program Verification},
+pages = {47–58},
+numpages = {12},
+keywords = {functional reactive programming, curry-howard correspondence, category theory, categorical semantics},
+location = {San Diego, California, USA},
+series = {PLPV '14}
 }
