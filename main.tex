@@ -6,6 +6,7 @@
 \usepackage{mathpartir}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{stmaryrd}
+\usepackage{titlesec}
 
 % https://tex.stackexchange.com/questions/471464/inverted-exclamation-mark-in-mathmode
 \DeclareMathSymbol{\mathinvertedexclamationmark}{\mathclose}{operators}{'074}
@@ -34,6 +35,8 @@
 \newcommand{\kvd}[1]{\textsf{\color{RoyalPurple}{#1}}}
 \newcommand{\lsep}{\;\;|\;\;}
 \newcommand{\cellref}[1]{\textsf{\color{Bittersweet}{#1}}}
+
+\newcommand{\caseref}[2]{\hyperref[#1]{Case~\#{}#2}}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -298,7 +301,7 @@ visualization} model \cite{petricek-2021-compost,marasoiu-2019-cuscus,wilkinson-
 Finally, \Timeline also uses a notion of \emph{typed holes} \cite{omar-2019-typedholes}
 to determine when the user may want to insert a cell reference during formula editing.
 
-\subsubsection*{Contributions} This paper presents the design and implementation of a
+\subsubsection*{Contributions.} This paper presents the design and implementation of a
 spreadsheet system with discrete time and captures its essence through a core calculus.
 
 \begin{itemize}[itemsep=2mm,topsep=2mm,leftmargin=0.5cm]
@@ -327,7 +330,10 @@ we first briefly review the design motivation for adding time to spreadsheets.
 We then introduce \Timeline through an example that leverages the time dimension and
 illustrates the capabilities of the system.
 
-\subsubsection*{Design Motivation}
+\subsubsection*{Design Motivation.}
+
+{\color{red} TODO: Moved}
+
 To motivate the design of \Timeline, we conducted formative interviews with spreadsheet experts,
 including some with major applied experience \cite{govuk-2020-carbon}, and we analysed models created using
 modelling languages with discrete time \cite{ccl-2025-netlogo}. The analysis shows that
@@ -346,7 +352,7 @@ who noted that \emph{``once you set the rows to time steps, you have
 lost a dimension of your spreadsheet''} and \emph{``if you use one [dimension] for time,
 everything else becomes miserable.''} \Timeline aims to avoid such misery.
 
-\subsubsection*{Motivating Example}
+\subsubsection*{Motivating Example.}
 To demonstrate \Timeline, we consider a simple numerical physics simulation of cannonball firing.
 In each step, the simulation computes the new cannonball position using the
 position in the previous step and the current velocity. The initial velocity is computed from the
@@ -379,7 +385,7 @@ is then embedded in the sheet.}
 \vspace{-0.25em}
 \end{figure}
 
-\subsubsection*{Implementing Cannonball Simulation}
+\subsubsection*{Implementing Cannonball Simulation.}
 In \Timeline, we can implement the cannonball simulation using a single table.
 We use this example to introduce the key features of the system.
 
@@ -429,7 +435,7 @@ using the \tml{[-1]} notation. It is thus sufficient to keep one past value for 
 For the chart (\autoref{fig:cannon}, \circled{5}) we need to store all previous values of the
 cells that define the line. We discuss this aspect in detail in \autoref{sec:features-coeffects}.
 
-\subsubsection*{Composable Data Visualization}
+\subsubsection*{Composable Data Visualization.}
 Data visualizations in standard spreadsheet systems exist separately from the core spreadsheet
 model. They are created through a graphical user interface where the user specifies data sources
 and other chart attributes. \Timeline takes inspiration from research on spreadsheet-based
@@ -470,7 +476,7 @@ without modifying the shape value. Finally, the cell \tml{D17} then overlays the
 individual lines and adds axes. The underlying charting library automatically aligns the chart
 elements and computes the range.
 
-\subsubsection*{Extending the Spreadsheet Paradigm}
+\subsubsection*{Extending the Spreadsheet Paradigm.}
 The preceding example illustrated most of the extensions that \Timeline makes to the core
 model of spreadsheets. In fact, the only significant additional feature needed by the
 opening Flappy Bird clone (\autoref{fig:teaser}) is the \tml{KEYPRESS("A")} function, which
@@ -1126,7 +1132,7 @@ N_1 m_1 [-t_1] + (t, i, j) = (N_1 + i - 1) (m_1 + j - 1) [-(t_1 + t - 1)]
 \label{fig:semantics-time}
 \end{figure}
 
-\subsubsection*{Formula evaluation}
+\subsubsection*{Formula evaluation.}
 \autoref{fig:semantics-time} defines the extended semantics. Formula evaluation
 is now defined with respect to the sheet $\sigma$ but also previously evaluated values
 represented using a history $\omega$. The additional context can be easily added to the
@@ -1182,7 +1188,7 @@ $\boxed{\textnormal{Iterated evaluation:}~~\sigma \Downarrow_n \gamma}$
 \label{fig:semantics-sheet}
 \end{figure}
 
-\subsubsection*{Sheet evaluation}
+\subsubsection*{Sheet evaluation.}
 Ordinary spreadsheets are evaluated to a grid of values using the $\sigma\Downarrow\gamma$
 relation (\autoref{fig:semantics}). In \Timeline, the evaluation proceeds
 iteratively in discrete time steps for as long as the user desires (\autoref{fig:semantics-sheet}).
@@ -1306,7 +1312,7 @@ and allows a space optimization where past values of a cell can be obtained eith
 and then the corresponding evaluation semantics.
 
 
-\subsubsection*{Coeffect-based checking}
+\subsubsection*{Coeffect-based checking.}
 As before, we use a context $\Omega : \mathit{Address} \rightarrow \mathbb{N}_1 \cup \{\infty\}$,
 representing the required buffer size for a given cell address. We say that a cell at an
 address $a$ is \emph{stateful} if $a\in\ident{dom}(\Omega)$ and \emph{stateless} if
@@ -1417,7 +1423,7 @@ $\boxed{\textnormal{Coeffect-based evaluation:}~~\sigma \Downarrow^\Omega_n \gam
 \label{fig:semantics-coeffsheet}
 \end{figure}
 
-\subsubsection*{Coeffect-based formula evaluation}
+\subsubsection*{Coeffect-based formula evaluation.}
 In the standard formula evaluation, defined before (\autoref{sec:calculus-time}), access to past
 values of a cell is defined using the $\omega \vdash a[-t]\,!`\, V$ rule, which finds
 the previous value in the timeline for the given cell using $\omega(a)(t)$.
@@ -1436,7 +1442,7 @@ of the referenced cell $\sigma(a)$. To evaluate it, we obtain a view of the hist
 at the previous point in history. This is done using $\ident{shift}_t(\omega)$ which adds the
 offset $t$ to any past time step $t'$ that is accessed during the evaluation.
 
-\subsubsection*{Coeffect-based sheet evaluation}
+\subsubsection*{Coeffect-based sheet evaluation.}
 The evaluation mechanism discussed in the previous section is defined with respect to the
 history $\omega$. The standard way of constructing the history, shown in
 \autoref{fig:semantics-sheet}, keeps full history for all cells in the spreadsheet. As discussed
@@ -1466,7 +1472,7 @@ the results are the same. Second, the coeffect-based optimization is sound, i.e.
 can be checked with respect to $\Omega$, then it can also be evaluated
 using the coeffect-based evaluation that restricts the stored value history as specified by $\Omega$.
 
-\subsubsection*{Determinacy}
+\subsubsection*{Determinacy.}
 There are three sources of non-determinism in \Timeline sheet evaluation. First, the
 sheet evaluation does not define the order in which the cells evaluate. Second, \Timeline
 includes non-deterministic functions such as \tml{RANDOM}. We omit those in the formal model.
@@ -1550,7 +1556,7 @@ evaluating the cell will yield the same results.
 \end{proof}
 
 
-\subsubsection*{Soundness}
+\subsubsection*{Soundness.}
 The second important property that we want to show is that the coeffect-based optimization is
 sound. As defined in \autoref{fig:semantics-coeffsheet}, the key aspect of the optimization is
 that the history $\omega$ is restricted according to a context $\Omega$ that defines which cells
@@ -1630,8 +1636,81 @@ By induction on $n$.
 for each $k$, establishing $\sigma \Downarrow^\Omega_n \gamma_n$.
 \end{proof}
 
+\newpage
+
+\begin{figure}
+\boxed{\begin{overpic}[trim=0 17.2cm 26.5cm 0,clip,width=13em]{fig/refs1}\put(92,18){\circled{1}}\end{overpic}}
+\quad
+\boxed{\begin{overpic}[trim=0 17.2cm 26.5cm 0,clip,width=13em]{fig/refs2}\put(93,18){\circled{2}}\end{overpic}}
+\caption{Two ways of storing multiple attributes per agent. When using a column per attribute \circled{1}
+references to neighbouring agents need to target the correct column (and using a range becomes hard).
+When using table per attribute \circled{2} references to other attributes become challenging.}
+\label{fig:tables}
+\end{figure}
+
+\section{Formative study}
+\label{sec:user-study}
+
+The design of \Timeline is motivated by two observations introduced earlier (\autoref{sec:walkthrough}),
+namely that modelling tasks involving discrete time often have three-dimensional structure, and that this
+structure is poorly served by traditional two-dimensional spreadsheets.
+
+\subsubsection*{Analysing discrete time models.}
+To support the first observation, we examined a number of models published at the NetLogo Models
+Library \cite{ccl-2025-netlogo}. NetLogo is a modelling language with discrete time that is used
+in a variety of domains including social sciences, natural sciences, computer science and
+mathematics. For example, agent-based models in economics \cite{abar-2017-abm} often involve
+multiple agents with multiple attributes that evolve over time. Physics simulations that require
+numerical solution also require tracking multiple attributes of multiple entities over time.
+Financial analyses of historical data have the same structure.
+
+\subsubsection*{Formative user study.}
+Prior to implementing \Timeline, we conducted a small-scale formative study with four participants
+that supports the second observation. We asked participants to complete a four-part modelling task in
+Excel (30-45 minutes), and concluded with a semi-structured interview (30-45 minutes).
+To see different approaches to the problem, we recruited two expert spreadsheet users and two students
+with computer science background. Although the small scale of the study limits generalisability,
+we provide a brief summary of the task and the findings.
+
+\subsubsection*{Modelling task and findings.}
+Participants were asked to model a race, where a number of runners run from a starting point and
+the first runner reaching the finish line wins. We started with a simple version of the task and
+gradually introduced further requirements:
+%
+\begin{enumerate}[label=\arabic*),leftmargin=1.5em]
+\item Each runner runs independently at a constant randomly generated speed. There is no~finish~line.
+\item We add a finish line and runners now run in a track with separate lanes. A runner stops
+  when it crosses the finish line, or if its direct neighbour on the left or on the right stops.
+\item The speed of the runners now changes by a small randomly generated number in each step.
+\item Runners now stop whenever any agent crosses the finish line, not just a direct neighbour.
+\end{enumerate}
+%
+Three of the participants completed all four parts. Our key findings were:
+%
+\begin{enumerate}[label=\alph*),leftmargin=1.5em]
+\item An expert spreadsheet user quoted earlier (\autoref{sec:walkthrough}) attempted to use an analytical
+  solution to avoid ``losing'' a dimension for modelling time. For (1) and (2), they stored a
+  time step in a single cell and calculated locations analytically. For (3) and (4), they
+  resorted to using rows for time.
+\item Part (3) required storing multiple attributes per agent. Two approaches used by participants
+  involved using a table per attribute and keeping attributes as columns in a
+  single table (\autoref{fig:tables}).
+\item In (2), inter-agent dependencies posed no difficulty, but (4) required more complex
+  addressing and some solutions used an auxiliary table to check for race completion.
+\item Notably, none of the participants attempted to use a recursive formula. In Excel, this
+  can be done by enabling \emph{iterative calculation} and manually recomputing a value for each
+  time step.
+\end{enumerate}
+%
+The following section shows how the above challenges are avoided in \Timeline. It
+removes the need for dimension reduction (b) and simplifies addressing (c), although
+some of the case studies we discuss still use auxiliary tables.
+
 \section{Case studies}
 \label{sec:case-studies}
+
+\let\oldthesubsection\thesubsection
+\renewcommand{\thesubsection}{Case \#\arabic{subsection}:\hspace{-0.5em}}
 
 To showcase the expressive power of \Timeline, we present four case studies from four different
 application domains. In addition to the interactive game example discussed in the opening,
@@ -1660,7 +1739,7 @@ first four planets.
 \vspace{-0.25em}
 \end{figure}
 
-\subsubsection*{Spreadsheet structure}
+\subsubsection*{Spreadsheet structure.}
 The spreadsheet consists of four tables. The first one contains constants, such as the astronomical
 unit and the gravitational constant. The second and third tables contain information about the
 Sun and the planets and the fourth table composes the final visualization by overlaying black
@@ -1686,7 +1765,7 @@ position is 0):
 /* Y Position */ D16 = 0 => D16[-1] + $I16[-1] * $G$6
 \end{lstlisting}
 
-\subsubsection*{Case study assessment}
+\subsubsection*{Case study assessment.}
 Technically, the case study is similar to the cannonball simulation (\autoref{sec:walkthrough}).
 It uses absolute references (dollar sign) to enable the drag down operation for adding further
 planets; and it uses the \tml{[-1]} notation to access one past value when updating
@@ -1709,7 +1788,7 @@ individual birds. The birds follow three simple rules: (i) each bird steers away
 in its close proximity, (ii) each bird flies towards the average position of flockmates in its
 visual range, and (iii) each bird tries to match the vector of birds in its visual range.
 
-\subsubsection*{Spreadsheet structure}
+\subsubsection*{Spreadsheet structure.}
 The model consists of a table with constants, a table with attributes of the birds and 9
 square tables (no. of birds $\times$ no. of birds) that model interactions between birds.
 \autoref{fig:case-boids} shows the main table and an interaction table calculating the distance
@@ -1749,7 +1828,7 @@ birds are within the visual range of each other (\tml{DIST} is a user-defined he
 \vspace{-0.25em}
 \end{figure}
 
-\subsubsection*{Case study assessment}
+\subsubsection*{Case study assessment.}
 The implementation still relies only on simple formulas and the \tml{[-1]} construct to access
 previous value of a cell, but the sheet is larger. In particular, the construction of
 interaction tables requires some effort (we can use drag down to update formulas in one direction,
@@ -1767,7 +1846,7 @@ a possible exit point. Our third case study implements a backtesting algorithm t
 historical price data and calculates the gains or losses of the strategy over the
 history.
 
-\subsubsection*{Spreadsheet structure}
+\subsubsection*{Spreadsheet structure.}
 The spreadsheet (\autoref{fig:case-finance})\footnote{Available at:
 \url{https://timelinesheets.com/spreadsheet/e653e57b-9ba9-463d-9f2b-44ddd5a426d3} (same as above)}
 loads data from an uploaded CSV file using the \tml{DATASET} function. This is a time-varying
@@ -1783,7 +1862,7 @@ relationship in the current and the previous step:
 /* Signal */  D9 = IF(AND(B9>C9,B9[-1]<=C9[-1]),1,IF(AND(B9<C9,B9[-1]>=C9[-1]),-1,0))
 \end{lstlisting}
 
-\subsubsection*{Case study assessment}
+\subsubsection*{Case study assessment.}
 The implementation relies on programming patterns that are common in synchronous dataflow
 programming languages, such as the code for edge detection discussed earlier (\autoref{sec:features-dataflow}).
 The example also utilizes larger history buffer (10 values for cell \tml{B9}, 20 for \tml{C9}).
@@ -1803,10 +1882,11 @@ to show the price changes inline.
 \end{figure}
 
 \subsection{Flappy bird game clone}
+\label{sec:case-flappy}
 Flappy bird is a simple side-scroller game where the player aims to jump through a series of pipes
 without hitting them. The bird is dragged down by gravity and jumps up when the user hits a key.
 
-\subsubsection*{Spreadsheet structure}
+\subsubsection*{Spreadsheet structure.}
 Our implementation \autoref{fig:teaser}\footnote{Available at: \url{https://timelinesheets.com/spreadsheet/1187c0bd-fe59-4efd-9541-622f35587031} (the web site
 does not reveal author identity). To run the game, click \emph{View} $\rightarrow$ \emph{Graph},
 click \emph{Play} and then press \texttt{A} to jump.}
@@ -1816,12 +1896,121 @@ The bird moves down with gravity or up when the keypress is detected using \tml{
 The pipes move to the left. A new size and position is chosen when the pipe moves out of view
 and so the table only has a fixed size of 3.
 
-\subsubsection*{Case study assessment}
+\subsubsection*{Case study assessment.}
 The Flappy bird game illustrates the somewhat unexpected capabilities of the \Timeline programming
 model, when extended with a simple function to detect key presses. The discrete time serves as
 the main game loop and composable visualizations can be used to construct the game scene from
 individual images (background, bird and pipe sprites). As new entries cannot be dynamically added
 to a table, the existing three pipes have to be reused.
+
+\let\thesubsection\oldthesubsection
+
+\newpage
+
+\subsection{Using the two dimensions}
+\label{sec:case-studies-using}
+
+The formative study (\autoref{sec:user-study}) identified the difficulty with embedding
+three-dimensional data into two-dimensional grid as one of the challenges when using conventional
+spreadsheets. We can now revisit the four case studies, consider how they use the grid
+and whether (and how) they could be embedded in ordinary two-dimensional spreadsheet:
+%
+\begin{itemize}[itemsep=2mm,topsep=1mm,leftmargin=0.5cm]
+\item Planetary orbit (\caseref{sec:case-physics}{1}) and cannonball (\autoref{sec:walkthrough})
+  simulations use a table $\textit{entities}\times\textit{attributes}$. To use an ordinary
+  spreadsheet, we would need to embed entities and attributes in a single dimension, facing
+  the problem discussed earlier (\autoref{fig:tables}). With dimensions
+  $4\times 18$ and $5\times 8$, this would involve a very wide table or a large number of auxiliary tables.
+
+\item Flocking (\caseref{sec:case-abm}{2}) uses both an $\textit{entities}\times\textit{attributes}$
+  table of size $10\times 17$, but it also uses multiple $\textit{entities}\times \textit{entities}$
+  tables for pairwise comparison to calculate distances and other interactions. Doing so in an
+  ordinary spreadsheet would require a wide table and dynamic index calculation.
+
+\item Moving average crossover (\caseref{sec:case-finance}{3}) does not use two-dimensional tables
+  and could be encoded in an ordinary spreadsheet (using rows for individual values and columns for
+  the averages and other computed attributes). The benefit of \Timeline is that it can provide a
+  live animated chart and could support streaming data. This can also be achieved in two-dimensions \cite{chang-2015-streaming}.
+
+\item Flappy bird (\caseref{sec:case-flappy}{4}) also does not use two-dimensional tables,
+  but it leverages the fact that the discrete time in \Timeline is unbounded (the game can
+  continue indefinitely) and that keyboard events can be used as inputs. This could
+  also be achieved in a two-dimensional model \cite{chang-2015-streaming,chang-2014-web}.
+\end{itemize}
+
+Implementing the first three case studies in an ordinary spreadsheet system is possible, but
+it would require using large amount of space, that is a situation encountered in part 3 of
+our formative study that two of the participants judged as \emph{miserable} and
+\emph{painful}, respectively.
+
+
+\newpage
+
+\section{Discussion}
+Spreadsheets are a canonical example of end-user programming tool
+\cite{ko-2011-enduser,nardi-1993-matter}, but the question why and how exactly
+spreadsheets achieve their usability does not have an established definitive answer.
+We review existing analyses and discuss what they suggest about the usability of \Timeline.
+
+\subsubsection*{Evaluating spreadsheet systems.}
+Many analyses of spreadsheets focus on documenting their errors and engineering limitations
+\cite{hermans-2015-smells,panko-1998-errors}. A few analyses attempt to explain what makes
+spreadsheets work. Nardi \cite{nardi-1993-matter} argues that spreadsheets
+succeed because they closely fit the domain of tabular data analysis, while not requiring
+explicit control flow and abstraction. Spreadsheets also achieve a high degree of liveness,
+due to the edit-triggered recomputation \cite{tanimoto-2013-live}.
+
+A more structured analysis of spreadsheets \cite{hendry-1994-spreadsheets} has been done
+using the cognitive dimensions of notations framework \cite{green-1996-cogdims}. This has
+identified several notable characteristics. Spreadsheets can support \emph{closeness of mapping}
+where the program domain is closer to the problem domain if the problem fits naturally with a
+two-dimensional grid. They do not suffer from high \emph{viscosity}, meaning that changes are
+easy to make (even if this requires copying the modified formula). However, spreadsheets suffer
+from poor \emph{visibility} of code and \emph{hidden dependencies}, because logic is hidden inside formulas
+that have to be explicitly viewed. The analysis also attributes the success of spreadsheets to their
+low \emph{abstraction level} and support for \emph{progressive evaluation}, i.e., live immediate feedback.
+The analysis provides a limited baseline for heuristic evaluation of spreadsheet extensions.
+
+\subsubsection*{Adding the time dimension.}
+Applying Nardi's analysis to \Timeline suggests that spreadsheets with discrete time fit
+well with a broader range of application domains. In addition to tabular data analysis, these
+include the four domains discussed above (\autoref{sec:case-studies}) and so \Timeline can
+achieve better \emph{closeness of mapping} by not requiring an auxiliary tables
+(\autoref{fig:tables}) to store values. The system also preserves a high degree of liveness through
+edit-triggered recomputation, automatically recomputing the spreadsheet from the first time-step if
+necessary.
+
+Reference to values in earlier steps, such as \tml{A1[-1]}, are less direct because the value
+of \tml{A1[-1]} is not readily displayed in the grid and
+cannot be referenced by clicking on it when writing a formula. This property is not
+identified by aformentioned analyses, but relates to \emph{concrete programming}
+\cite{edwards-2004-concrete}. Programming in \Timeline is thus less concrete than in ordinary
+spreadsheets.
+
+\Timeline also has a higher \emph{viscosity} than conventional spreadsheets when the user wants
+to modify a value at certain time steps. When encoding time as rows, this can be done by selecting
+the affected range and modifying the value. When time exists in a single time-dependent formula,
+such change can only be done by using \tml{IF} function with a condition based on the current
+\tml{STEP()}.
+Modifying the logic of a single entity is, however, easier in \Timeline where the logic for all
+time steps exists in a single formula, as opposed to multiple copies of the same formula.
+
+The \emph{visibility} of code remains unchanged, but \emph{visibility} of computed values
+is decreased because only values for a single time step are displayed. (When representing time
+as rows, multiple time steps are visible.) To alleviate this limitation, \Timeline makes it
+easy to construct sparklines as shown in the financial analysis (\caseref{sec:case-finance}{3}),
+which make previous values visible in a concise form.
+
+\subsubsection*{The limits of discrete time.}
+\Timeline uses discrete time, which limits what kind of models it can express.
+The grid is fixed and entities cannot be created over time. A flocking simulation with
+constant number of birds (\caseref{sec:case-abm}{2}) is expressible, but a predator-prey model
+in which individuals are born and die can be only modelled by pre-allocating a fixed table of
+entities. Moreover, all cells advance on a single global clock and \Timeline has no analogue of the
+clock calculi of synchronous languages \cite{caspi-1992-clocks}, which would allow cells to progress
+at different rates. Supporting a more general notion of discrete time would be useful in domains such
+as finance where users often work with data indexed by time. However, generalising the notion of time
+would require adapting not just the evaluation model, but also the indexing logic and notation.
 
 \section{Related work}
 \Timeline shows that a large number of programming language research
@@ -1829,8 +2018,7 @@ concepts are directly applicable to spreadsheets. Earlier discussion (\autoref{s
 covers work on coeffect systems, data visualization and typed holes. This section
 provides an overview of the remaining main related research areas.
 
-\vspace{-0.25em}
-\subsubsection*{Extending the spreadsheet model}
+\subsubsection*{Extending the spreadsheet model.}
 Forms/3~\cite{burnett-2001-forms3} is a pioneering extension of spreadsheets to non-tabular
 format, that inspired later work \cite{bazant-2018-nontabular}; spreadsheets have been extended
 to support object-orientation \cite{mccutchen-2016-oop,clack-1997-object} and
@@ -1843,8 +2031,7 @@ Cuscus is a design prototype for describing rich visualizations in a
 spreadsheet~\cite{marasoiu-2019-cuscus} and our work has also been inspired by
 sparklines~\cite{frishberg-2011-sparklines}.
 
-\vspace{-0.2em}
-\subsubsection*{Abstractions and types for spreadsheets}
+\subsubsection*{Abstractions and types for spreadsheets.}
 Sheet-defined functions are introduced in~\cite{jones-2003-functions} with formal semantics
 developed later~\cite{sestoft-2013-sheetdef,bock-2020-sheetdef,bock-2022-cost}. Later work allows
 variable-size input~\cite{mccutchen-2020-sdfs}, while gridlets \cite{joharizadeh-2020-gridlets}
@@ -1853,8 +2040,7 @@ which directly inspired our semantics. Multiple systems provide static type syst
 spreadsheets~\cite{ahmad-2003-types,abraham-2006-types}, perform static analysis of formulas
 \cite{cheng-2015-static} or apply other software engineering techniques \cite{hermans-2016-spreadsheets}.
 
-\vspace{-0.2em}
-\subsubsection*{Dataflow and functional reactive programming}
+\subsubsection*{Dataflow and functional reactive programming.}
 The \Timeline execution draws inspiration from synchronous dataflow languages such as
 Lucid, Lustre and Esterel~\cite{benveniste-2003-sync,ashcroft-1977-lucid,caspi-1987-lustre,halbwachs-1991-lustre,berry-1992-esterel}.
 Our programming model is most closely related to Lustre, whose clock calculus~\cite{caspi-1992-clocks}
@@ -1864,8 +2050,7 @@ event-based systems are more similar to our approach \cite{wan-2002-efrp}.
 Space leak problems have been a challenge for the implementation of FRP
 systems~\cite{krishnaswami-2013-leaks,bahr-2022-frp}, not shared by our system.
 
-\vspace{-0.2em}
-\subsubsection*{Semantics of reactive and dataflow programs}
+\subsubsection*{Semantics of reactive and dataflow programs.}
 Our semantics has been inspired by operational approaches \cite{williams-2020-spilled,bock-2020-sheetdef,bock-2022-cost}.
 More dynamic reactive systems often use graph-based evaluation \cite{satyanarayan-2016-vega,oeyen-2023-graphbased}.
 The semantics of dataflow languages has been given in both monadic~\cite{wadge-1995-monads}
@@ -1875,7 +2060,6 @@ defined denotationally \cite{elliott-2009-pushpull} using a range of categorical
 models \cite{jeltsch-2014-categorical,krishnaswami-2011-ultra}, but recently also in an
 operational style \cite{ischard-2025-frp}.
 
-\vspace{-0.3em}
 \section{Conclusions}
 Spreadsheets are the most widely used programming systems in the world, but their expressive
 power is limited. Attempts to extend spreadsheets face a challenge---how to extend the power
@@ -1890,6 +2074,9 @@ inspiration from synchronous dataflow languages and functional reactive programm
 guarantee memory-bounded execution using coeffects, the formula editor can leverage the theory of
 typed holes and we can support rich charts by using ideas rooted in grammar of graphics.
 There is more to spreadsheets than meets the (programming language researcher's) eye!
+
+%TODO: ACKS: Clemens, Vít Ungermann, Raphael Wimmer, Jakob Haimerl and Tobias Wittl
+% \footnote{We thank anonymous reviewer for pointing out the mid-air change scenario.}
 
 \newpage
 \section*{Data availability statement}
@@ -1931,6 +2118,7 @@ list issues). In all cases, the authors wrote the actual text as it appears in t
 %\begin{acks}
 %Omitted
 %thanks to Mickael for pointing out the synchronous languages link!
+%thanks to Vit Ungermann for adding compost
 %\end{acks}
 
 \bibliographystyle{ACM-Reference-Format}
