@@ -1,0 +1,97 @@
+\begin{figure}
+
+\raisebox{-0.45\height}{\begin{overpic}[width=10em]{fig/holes1}\put(88,53){\circledsm{1}}\end{overpic}}
+$~~\boldsymbol{\Rightarrow}~~$
+\raisebox{-0.45\height}{\begin{overpic}[width=10em]{fig/holes2}\put(88,53){\circledsm{2}}\end{overpic}}
+$~~\boldsymbol{\Rightarrow}~~$
+\raisebox{-0.45\height}{\begin{overpic}[width=10em]{fig/holes3}\put(88,53){\circledsm{3}}\end{overpic}}
+\caption{Constructing a formula for Fahrenheit to Celsius conversion. \circled{1}
+After typing "(" the user clicks on a wrong cell and a reference to it is inserted,
+\circled{2} then they click on the right cell to correct the formula. \circled{3} After
+writing the rest of the formula, they click anywhere on the sheet to stop editing it.}
+\label{fig:holes}
+\end{figure}
+
+\newcommand{\hhole}[1]{{\color{Purple}{\llparenthesis}} \hspace{0.05em} #1 \hspace{0.05em} {\color{Purple}{\rrparenthesis}}}
+\newcommand{\errrec}[1]{{\color{Emerald} #1}}
+\newcommand{\hcmt}[1]{\text{\color{gray}\small #1}}
+
+\begin{figure}[t]
+\vspace{-0.5em}
+\[
+\begin{array}{r@{\;\;}r@{\;\;}l}
+\hhole{}
+ & \rightsquigarrow & (\hhole{}\errrec{)} \\
+ & \rightsquigarrow & (\hhole{\mathsf{B4}}\errrec{)} \\
+ & \rightsquigarrow & (\hhole{\mathsf{B3}}\errrec{)} \\
+ & \rightsquigarrow & (\mathsf{B3}-\hhole{}\errrec{)} \\
+ & \rightsquigarrow & (\mathsf{B3}-32\errrec{)} \,\rightsquigarrow\, (\mathsf{B3}-32) \\
+ & \rightsquigarrow & (\mathsf{B3}-32)*\hhole{} \,\rightsquigarrow\, (\mathsf{B3}-32)*5 \\
+ & \rightsquigarrow & (\mathsf{B3}-32)*5/\hhole{} \,\rightsquigarrow\, (\mathsf{B3}-32)*5/9
+\end{array}
+\hspace{-10em}
+\begin{array}{l}
+  \hcmt{The user starts typing and a hole is inserted}\\
+  \hcmt{The user clicks on B4 to fill the hole}\\
+  \hcmt{They correct the error with another click} \\
+  \hcmt{As they type, the original hole is removed and a new one is added}\\
+  \hspace{11em}\hcmt{The user completes the expression}\\
+  \hspace{11em}\hcmt{Hole is added after $*$ and then removed}\\
+  \hspace{11em}\hcmt{The same happens when adding $/5$}\\[0.2em]
+\end{array}
+\]
+\vspace{-0.5em}
+\caption{Step-by-step editing of the Fahrenheit to Celsius formula using automatically inserted holes.}
+\label{fig:editing}
+\vspace{-0.5em}
+\end{figure}
+
+\subsection{Editing formulas with holes}
+\label{sec:features-holes}
+
+An unexpected area where programming language theory becomes useful in the implementation of a spreadsheet
+system is formula editing. In popular spreadsheets (Excel, Google Sheets), users can click
+on cells while editing a formula to insert a cell reference.
+Interestingly, a cell reference is not inserted on every click, but only when the edit is
+meaningful. Moreover, a click can also modify a previously inserted cell reference. A specific
+scenario is illustrated in \autoref{fig:holes}.
+
+Precisely capturing the desired behavior is a challenge shared with recent work on collaborative
+editing \cite{litt-2022-peritext}. In our case, the desired behavior follows three rules
+(writing \tml{cursor} for the cursor location):
+
+\begin{itemize}[leftmargin=0.5cm]
+\item A reference is inserted when the cursor is in a position where an expression is expected.
+  This includes a newly created formula $\mathsf{=}\,\bullet$, operator parameters
+  \tml{=10+cursor} or a call \tml{=MIN(10,cursor}.
+\item A cell reference is replaced if it was just inserted, but the user clicks on a different cell.
+\item In other cases, editing is completed and the clicked formula is selected. This includes
+  locations inside a formula such as \tml{=1cursor+2} or \tml{=MIN(1cursor,2)}, as well as
+  at the end \tml{=MIN(10,A1)cursor}.
+\end{itemize}
+
+The desired behavior can be implemented using the notion of holes \cite{mcbride-2000-holes}
+as used in the Hazel programming environment \cite{omar-2017-hazelnut,omar-2019-typedholes}.
+Hazel introduced holes to support working with incomplete programs. A missing or unfinished
+sub-expression in a program is represented by a hole $\hhole{}$, which allows
+the rest of the program to be type checked and even run. Non-empty holes, written as
+$\hhole{e}$, represent sub-expressions of inconsistent type, i.e.,
+a type error that needs to be resolved later.
+
+A formula editor based on holes would use a (possibly non-empty) hole to represent the location
+where a cell reference can be inserted using a click. We adopt the Hazel notation writing
+$\hhole{}$ for holes and we write $\errrec{)}$ for tokens assumed during error recovery.
+The individual steps of the interaction shown in \autoref{fig:holes} are listed in
+\autoref{fig:editing} (writing $\rightsquigarrow$ for an editing step).
+
+The parser inserts a hole when it encounters an error at the cursor
+location.\footnote{Excel supports intersection ranges written as a space-separated list of
+references such as $\mathsf{\color{Bittersweet} A1}\!:\!\mathsf{\color{Bittersweet} C3}~~\mathsf{\color{Bittersweet} B2}\!:\!\mathsf{\color{Bittersweet} D4}$.
+These are not currently supported in \Timeline, but they would be the only place where a hole needs to
+be inserted in the absence of a parser error. Moving the cursor to the middle of the list should
+insert a hole, i.e., $\mathsf{\color{Bittersweet} A1}\!:\!\mathsf{\color{Bittersweet} C3}~\hhole{}~\mathsf{\color{Bittersweet} B2}\!:\!\mathsf{\color{Bittersweet} D4}$.}
+Clicking puts a cell reference inside the hole, possibly replacing a previous reference.
+Holes are removed when the user enters a valid input that completes the expression.
+Note that a formula such as $1+\hhole{}$ can be completed in two ways. Typing a cell reference
+results in $1 + \mathsf{A1}$, while clicking on the same cell results in
+$1 + \hhole{\mathsf{A1}}$ and allows further clicks to change the reference.
